@@ -36,3 +36,7 @@ We have 3 datasets:
 <br>
 [ ] Whats the conclusion about scientific discoveries?
 <br>
+
+## <u> Evaluation of pretrained CNN models we can use </u>
+
+https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9777002/#:~:text=The%20WBC%20count%20represents%20essential,as%20depicted%20in%20Figure%201.
