@@ -16,9 +16,13 @@ We have 3 datasets:
 
 ## <u>TODO</u>
 
+[ ] Push dataset into google drive
+<br>
 [ ] Understand white blood cells and the biology behind it
 <br>
-[ ] Understand the datasets. Are the pretrainable datasets combinable to form one dataset?
+[ ] Understand the datasets + EDA + stratification?
+<br>
+[ ] Are the pre-trainable datasets combinable to form one dataset?
 <br>
 [ ] From each dataset figure out a rough outline for the inputs and outputs for models built on each & see how to make use of common weights (multi task learning for the pretraining datasets?)
 <br>
@@ -28,9 +32,11 @@ We have 3 datasets:
 <br>
 [ ] Come up with metrics we need to use
 <br>
-[ ] Come up with ways to show visualization ( eg attention heat maps, test results etc)
+[ ] Come up with ways to show visualization (eg attention heat maps, test results etc)
 <br>
-[ ] Finish coding the data pipelines in a generic reusable way
+[ ] Push dataset into google drive and get code to use it in colab
+<br>
+[ ] Finish coding the data pipelines + viz in a generic reusable way
 <br>
 [ ] Train the pretrained model to the best of my ability and save the weights ( But figure out how to efficiently load them )
 <br>
