@@ -14,13 +14,25 @@ We have 3 datasets:
 2. WBC dataset (for actual classification)
    - Use 100%,50%,10% & 1% for training (with the pretraining and without the pretraining)
 
+Here are some traits of each dataset:
+1. The pRCC dataset has no label so some kind of unsupervised learning needs to happen there
+2. The Camelyon16 dataset and WBC dataset both have masks as well for segmentation
+3. The Camelyon16 dataset has normal and tumour but not related to WBC from the looks of it.
+
+## <u> Approach </u>
+
+1. On WBC use the segmentation masks to create new augmented data and train a UNet for classification
+2. On pRCC train an autoencoder (also using unet architecture) but get the features from the encoder 
+3. On Camelyon16 use another UNet for classification
+4. For end to end training use pRCC encoder (non trainable) + Camelyon16 (non trainable, everything except classifier head) + Unet from WBC (weights)(trainable)
+
 ## <u>TODO</u>
 
 [ ] Push dataset into google drive
 <br>
 [ ] Understand white blood cells and the biology behind it
 <br>
-[ ] Understand the datasets + EDA + stratification?
+[x] Understand the datasets
 <br>
 [ ] Are the pre-trainable datasets combinable to form one dataset?
 <br>
