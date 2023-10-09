@@ -43,6 +43,7 @@ def train_model(
             resume_checkpoint
         )
 
+
     # Set up one-cycle learning rate scheduler
     sched = torch.optim.lr_scheduler.OneCycleLR(
         optimizer, params['learning_rate'],
@@ -69,11 +70,14 @@ def train_model(
                                   position=1, leave=False, dynamic_ncols=True, ncols=100, colour='green')
 
         for batch_idx, data in enumerate(train_loader):
+
+            #TODO.x 1 this is unique and can be a hook!
             # get the data and outputs
             images, labels = data
             images = images.to(device)
             labels = labels.to(device)
 
+            #TODO.x 2 this is also unique and can be a hook
             output_logits = model(images)
             loss = criterion(output_logits, labels)
             loss.backward()
@@ -84,8 +88,6 @@ def train_model(
             optimizer.step()
             optimizer.zero_grad()
 
-            # print(f"Curr LR -> {optimizer.param_groups[0]['lr']}")
-
             # scheduler update
             sched.step()
 
@@ -93,6 +95,7 @@ def train_model(
 
             # batch stats
             # Compute training accuracy for this batch
+            #TODO.x 3 this only applies if accuracy is being evaluated.
             output_probs = nn.Softmax(dim=1)(output_logits)
             predicted = torch.argmax(output_probs, 1)
             batch_correct_predictions = (predicted == labels).sum().item()

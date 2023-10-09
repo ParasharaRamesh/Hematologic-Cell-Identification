@@ -1,3 +1,4 @@
+#TODO.x check if we can do f1 score, recall and other metrics etc
 def perform_test(criterion, device, model, test_loader):
     test_loss = 0.0
     test_correct_predictions = 0
