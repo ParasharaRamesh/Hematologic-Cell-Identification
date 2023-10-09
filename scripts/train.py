@@ -6,6 +6,7 @@ from models.pRCC import *
 from config.params import *
 from scripts.checkpoints import load_checkpointed_model_params
 
+#TODO. Contains the code for the most generic training script which can accept hooks
 
 def train_model(
         model,
