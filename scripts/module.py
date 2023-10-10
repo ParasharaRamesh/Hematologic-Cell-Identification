@@ -71,7 +71,7 @@ class Module:
         self.init_params_from_checkpoint_hook(resume_checkpoint)
 
         # set up scheduler
-        self.init_lr_scheduler_hook(num_epochs)
+        self.init_scheduler_hook(num_epochs)
 
         # Custom progress bar for total epochs with color and displaying average epoch loss
         total_progress_bar = tqdm(
@@ -144,7 +144,7 @@ class Module:
             epoch_postfix = self.calculate_and_print_epoch_stats_hook()
 
             # Store running history
-            self.store_running_history(epoch, avg_train_stats, avg_val_stats)
+            self.store_running_history_hook(epoch, avg_train_stats, avg_val_stats)
 
             # Update the total progress bar
             total_progress_bar.set_postfix(epoch_postfix)
@@ -168,7 +168,7 @@ class Module:
     def init_params_from_checkpoint_hook(self, resume_checkpoint):
         raise NotImplementedError("Need to implement hook for initializing params from checkpoint")
 
-    def init_lr_scheduler_hook(self, num_epochs):
+    def init_scheduler_hook(self, num_epochs):
         raise NotImplementedError("Need to implement hook for creating a scheduler. If no scheduler is required don't write any implementation for it")
 
     def calculate_loss_hook(self, data):
@@ -186,7 +186,7 @@ class Module:
     def calculate_and_print_epoch_stats_hook(self):
         raise NotImplementedError("Need to implement this hook to calculate and print the epoch statistics and return the postfix dictinoary")
 
-    def store_running_history(self, epoch, avg_train_stats, avg_val_stats):
+    def store_running_history_hook(self, epoch, avg_train_stats, avg_val_stats):
         raise NotImplementedError("Need to implement this hook to store the running history of stats for each epoch")
 
     def save_model_checkpoint_hook(self, epoch, avg_train_stats, avg_val_stats):
