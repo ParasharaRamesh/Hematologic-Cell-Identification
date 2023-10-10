@@ -32,7 +32,7 @@ Here are some traits of each dataset:
 <br>
 [ ] Understand white blood cells and the biology behind it
 <br>
-[x] Understand the datasets
+[x] Understand the datasets ( need to balance the WBC and camelyon datasets)
 <br>
 [ ] Are the pre-trainable datasets combinable to form one dataset?
 <br>

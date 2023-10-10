@@ -3,7 +3,7 @@ import random
 import torch
 from pytorch_msssim import SSIM
 from torch.utils.data import Subset
-
+import numpy as np
 import config.params as config
 from data.common import DeviceDataLoader
 from experiments.base.module import Module
@@ -182,21 +182,31 @@ class pRCCModule(Module):
                 _, predicted_image = self.model(sample_image)
 
                 # squeeze it
-                sample_image = sample_image.squeeze()
-                predicted_image = predicted_image.squeeze()
+                sample_image = sample_image.squeeze().to("cpu")
+                predicted_image = predicted_image.squeeze().to("cpu")
 
                 # keep it ready for showcasing in matplotlib
-                predicted_image = predicted_image.permute(1, 2, 0)
-                sample_image = sample_image.permute(1, 2, 0)
+                predicted_image = predicted_image.permute(1, 2, 0).numpy().astype(np.uint8)
+                sample_image = sample_image.permute(1, 2, 0).numpy().astype(np.uint8)
 
-                axes[i, 0].imshow(sample_image)
-                axes[i, 0].set_title(f"Original Image #{i + 1}", color='green')
-                axes[i, 0].axis('off')
-                axes[i, 0].set_title('off')
+                if num_samples == 1:
+                    #special case
+                    axes[0].imshow(sample_image)
+                    axes[0].set_title(f"Original Image #{i + 1}", color='green')
+                    axes[0].axis('off')
 
-                axes[i, 1].imshow(predicted_image)
-                axes[i, 1].set_title(f"Reconstructed Image #{i + 1}", color='red')
-                axes[i, 1].axis('off')
+                    axes[1].imshow(predicted_image)
+                    axes[1].set_title(f"Reconstructed Image #{i + 1}", color='red')
+                    axes[1].axis('off')
+                else:
+                    axes[i, 0].imshow(sample_image)
+                    axes[i, 0].set_title(f"Original Image #{i + 1}", color='green')
+                    axes[i, 0].axis('off')
+                    axes[i, 0].set_title('off')
+
+                    axes[i, 1].imshow(predicted_image)
+                    axes[i, 1].set_title(f"Reconstructed Image #{i + 1}", color='red')
+                    axes[i, 1].axis('off')
 
         plt.tight_layout()
         plt.show()
