@@ -7,7 +7,7 @@ The subclasses need to implement each hook along with testing code and any visua
 '''
 import torch
 import os
-from torch import nn
+from torch import nn, optim
 from tqdm.auto import tqdm
 import config.params as config
 
@@ -36,6 +36,9 @@ class Module:
         # get loaders (each of which already moves tensors to device)
         self.train_loader, self.test_loader, self.val_loader = self.dataset.get_loaders()
 
+        # Adam optimizer
+        self.optimizer = optim.Adam(self.model.parameters(), lr=config.learning_rate, weight_decay=config.weight_decay)
+
     # find the most recent file and return the path
     def get_model_checkpoint_path(self, epoch_num=None):
         directory = os.path.join(self.save_dir, self.name)
@@ -56,22 +59,22 @@ class Module:
         return os.path.join(directory, model_file)
 
     # main train code
-    def train(self, num_epochs, resume_checkpoint=None, epoch_saver_count=2, rest_epoch_count=False):
+    def train(self, num_epochs, resume_epoch_num=None, epoch_saver_count=2, rest_epoch_count=False):
         '''
 
         :param num_epochs:
-        :param resume_checkpoint: just the name of the model checkpoint
+        :param resume_epoch_num: just the name of the model checkpoint
         :param epoch_saver_count:
         :param rest_epoch_count:
         :return:
         '''
         torch.cuda.empty_cache()
 
-        # initialize the params from the saved checkpoint
-        self.init_params_from_checkpoint_hook(resume_checkpoint)
-
         # set up scheduler
         self.init_scheduler_hook(num_epochs)
+
+        # initialize the params from the saved checkpoint
+        self.init_params_from_checkpoint_hook(resume_epoch_num)
 
         # Custom progress bar for total epochs with color and displaying average epoch loss
         total_progress_bar = tqdm(
@@ -125,8 +128,7 @@ class Module:
                 # e.g. computes things like accuracy
                 batch_stats = self.calculate_train_batch_stats_hook()
 
-                if batch_stats:
-                    postfix.update(batch_stats)
+                postfix.update(batch_stats)
 
                 epoch_progress_bar.set_postfix(postfix)
                 epoch_progress_bar.update(1)
@@ -135,16 +137,16 @@ class Module:
             epoch_progress_bar.close()
 
             # calculate average epoch train statistics
-            avg_train_stats = self.calculate_avg_train_stats_hook()
+            avg_train_stats = self.calculate_avg_train_stats_hook(epoch_training_loss)
 
             # calculate validation statistics
             avg_val_stats = self.validation_hook()
 
-            # Show epoch stats
-            epoch_postfix = self.calculate_and_print_epoch_stats_hook()
-
             # Store running history
             self.store_running_history_hook(epoch, avg_train_stats, avg_val_stats)
+
+            # Show epoch stats (NOTE: Can clear the batch stats here)
+            epoch_postfix = self.calculate_and_print_epoch_stats_hook(avg_train_stats, avg_val_stats)
 
             # Update the total progress bar
             total_progress_bar.set_postfix(epoch_postfix)
