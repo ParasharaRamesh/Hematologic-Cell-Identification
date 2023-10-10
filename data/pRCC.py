@@ -3,6 +3,8 @@ from torch.utils.data import Dataset, DataLoader, ConcatDataset, random_split
 import os
 from torchvision.datasets import ImageFolder
 
+from data.common import DeviceDataLoader
+
 
 class pRCCDataset:
     def __init__(self, path, batch_size=pRCC_batch_size, resize_to=pRCC_img_resize_target, test_split=test_split, validation_split=validation_split):
@@ -93,7 +95,7 @@ class pRCCDataset:
         test_loader = DataLoader(test_dataset, batch_size=self.batch_size, shuffle=True)
         validation_loader = DataLoader(validation_dataset, batch_size=self.batch_size, shuffle=True)
 
-        return train_loader, test_loader, validation_loader
+        return DeviceDataLoader(train_loader), DeviceDataLoader(test_loader), DeviceDataLoader(validation_loader)
 
 
 if __name__ == '__main__':
