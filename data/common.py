@@ -1,5 +1,5 @@
 import torch
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Subset
 import config.params as config
 
 '''
@@ -27,3 +27,15 @@ class DeviceDataLoader(DataLoader):
             return {key: self._move_to_device(value) for key, value in batch.items()}
         else:
             return batch
+
+def create_mini_dataset(dataset, num_samples):
+    '''
+    Function to be used locally for checking if the model runs or not!
+
+    :param dataset:
+    :param num_samples:
+    :return:
+    '''
+    subset_indices = torch.randperm(len(dataset))[:num_samples]
+    subset_dataset = Subset(dataset, subset_indices)
+    return subset_dataset

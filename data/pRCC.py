@@ -4,7 +4,7 @@ import config.params as config
 from torch.utils.data import Dataset, DataLoader, ConcatDataset, random_split, Subset
 import os
 from torchvision.datasets import ImageFolder
-from data.common import DeviceDataLoader
+from data.common import DeviceDataLoader, create_mini_dataset
 from torchvision import transforms
 
 class pRCCDataset:
@@ -63,9 +63,8 @@ class pRCCDataset:
         '''
         image_folder =  ImageFolder(root=self.path, transform=transformation)
         #TODO. remove these lines
-        subset_indices = torch.randperm(len(image_folder))[:5]
-        subset_dataset = Subset(image_folder, subset_indices)
-        return subset_dataset
+        image_folder = create_mini_dataset(image_folder, 5)
+        return image_folder
 
     def construct_dataset_with_augmentation(self):
         '''
