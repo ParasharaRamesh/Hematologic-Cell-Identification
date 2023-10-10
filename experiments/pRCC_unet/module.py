@@ -2,7 +2,10 @@ import os
 import random
 import torch
 from pytorch_msssim import SSIM
+from torch.utils.data import Subset
+
 import config.params as config
+from data.common import DeviceDataLoader
 from experiments.base.module import Module
 from utils.loss import ssim_loss
 import matplotlib.pyplot as plt
@@ -159,27 +162,31 @@ class pRCCModule(Module):
         }
 
     # util code
-    def show_sample_reconstructions(self, dataloader, num_samples=3):
+    def show_sample_reconstructions(self, dataloader, num_samples=1):
         self.model.eval()
 
         # Get random samples
-        sample_indices = random.sample(range(len(dataloader.dataset)), num_samples)
+        sample_indices = torch.randperm(len(dataloader.dataset))[:num_samples]
+        subset_dataset = Subset(dataloader.dataset, sample_indices)
+
+        dataloader = DeviceDataLoader(subset_dataset, self.batch_size)
 
         # Create a subplot grid
         fig, axes = plt.subplots(num_samples, 2, figsize=(9, 9))
 
         with torch.no_grad():
-            for i, idx in enumerate(sample_indices):
-                # Get a random sample from the data loader
-                sample_image = dataloader.dataset[idx]
-                sample_image = sample_image.unsqueeze(0)
+            for i, val_data in enumerate(dataloader):
+                sample_image, _ = val_data
 
                 # Forward pass through the model
-                predicted_image = self.model(sample_image)
+                _, predicted_image = self.model(sample_image)
+
+                # squeeze it
+                sample_image = sample_image.squeeze()
+                predicted_image = predicted_image.squeeze()
 
                 # keep it ready for showcasing in matplotlib
                 predicted_image = predicted_image.permute(1, 2, 0)
-                sample_image = sample_image.squeeze()
                 sample_image = sample_image.permute(1, 2, 0)
 
                 axes[i, 0].imshow(sample_image)
