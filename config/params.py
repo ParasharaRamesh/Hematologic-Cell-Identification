@@ -1,3 +1,4 @@
+import torch
 from torchvision import transforms
 
 # 1. FLAGS
@@ -5,6 +6,8 @@ run_in_local = True
 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # 2. CONSTANTS
+
+device=torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 test_split = 0.2
 validation_split = 0.4
@@ -21,8 +24,6 @@ pRCC_img_resize_target = 1024  # from 2000 -> 1024
 
 # constants
 stats = ((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
-
-# basic transforms
 
 
 

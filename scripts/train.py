@@ -15,6 +15,7 @@ will be easier to compute the statistics this way!
 
 '''
 
+
 # TODO. Contains the code for the most generic training script which can accept hooks
 
 def train_model(
@@ -27,7 +28,6 @@ def train_model(
         epoch_saver_count=2,
         save_dir=None,
         resume_checkpoint=None,
-        device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
         is_classification_task=False,
         start_epoch_from_zero=False
 ):
@@ -48,31 +48,31 @@ def train_model(
     :return:
     '''
     # TODO. write docs
-    #0. Boiler plate needed for scheduler
+    # 0. Boiler plate needed for scheduler
     torch.cuda.empty_cache()
 
-    #1.a load the train params
+    # 1.a load the train params
     train_params = init_train_params(model, resume_checkpoint, is_classification_task, start_epoch_from_zero)
 
-    #1.b Based on the type load the params
+    # 1.b Based on the type load the params
     if is_classification_task:
         model, optimizer, start_epoch, epoch_numbers, training_losses, training_accuracy, validation_losses, validation_accuracy = train_params
     else:
         model, optimizer, start_epoch, epoch_numbers, training_losses, validation_losses = train_params
 
-    #1.c Set up one-cycle learning rate scheduler
+    # 1.c Set up one-cycle learning rate scheduler
     lr_scheduler = torch.optim.lr_scheduler.OneCycleLR(
         optimizer, learning_rate,
         epochs=num_epochs,
         steps_per_epoch=len(train_loader)
     )
 
-    #2. Custom progress bar for total epochs with color and displaying average epoch loss
+    # 2. Custom progress bar for total epochs with color and displaying average epoch loss
     total_progress_bar = tqdm(total=num_epochs, desc=f"Total Epochs", position=0,
                               bar_format="{desc}: {percentage}% |{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]",
                               dynamic_ncols=True, ncols=100, colour='red')
 
-    #3 training loop
+    # 3 training loop
     for epoch in range(start_epoch, start_epoch + num_epochs):
         # set to train mode
         model.train()
@@ -133,15 +133,15 @@ def train_model(
         # Calculate average loss for the epoch
         avg_training_loss_for_epoch = epoch_training_loss / len(train_loader)
 
-        #TODO.x not needed if not classification task
+        # TODO.x not needed if not classification task
         # Calculate training accuracy for the epoch (not sure what hook)
         avg_training_accuracy = train_correct_predictions / total_samples
 
         # Validation loop
-        #TODO.x 5 this can be different (validation_hook)
+        # TODO.x 5 this can be different (validation_hook)
         avg_val_accuracy, avg_val_loss_for_epoch = perform_validation(criterion, device, model, val_loader)
 
-        #TODO.x this can be different
+        # TODO.x this can be different
         # Store values
         training_accuracy.append(avg_training_accuracy)
         training_losses.append(avg_training_loss_for_epoch)
@@ -149,7 +149,7 @@ def train_model(
         validation_losses.append(avg_val_loss_for_epoch)
         epoch_numbers.append(epoch + 1)
 
-        #TODO.x this can be different
+        # TODO.x this can be different
         # Update the total progress bar
         total_progress_bar.set_postfix(
             {
@@ -164,13 +164,13 @@ def train_model(
         # Close the tqdm bat
         total_progress_bar.update(1)
 
-        #TODO.x this can be different
+        # TODO.x this can be different
         # Print state
         print(
             f'Epoch {epoch + 1}: train_loss: {avg_training_loss_for_epoch} | train_accuracy: {avg_training_accuracy} | val_loss: {avg_val_loss_for_epoch} | val_accuracy: {avg_val_accuracy} '
         )
 
-        #TODO.x save (checkpoint hook)
+        # TODO.x save (checkpoint hook)
         # Save model checkpoint periodically
         need_to_save_model_checkpoint = (epoch + 1) % epoch_saver_count == 0
         if need_to_save_model_checkpoint:
@@ -274,4 +274,3 @@ if __name__ == '__main__':
     #     epoch_saver_count=1,
     #     resume_checkpoint=None
     # )
-
