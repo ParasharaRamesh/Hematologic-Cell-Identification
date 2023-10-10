@@ -1,54 +1,102 @@
 from config.params import *
 from torch.utils.data import Dataset, DataLoader, ConcatDataset, random_split
 import os
-
-from data.common import get_dataset
-
-
-def get_pRCC_dataset(inp_path):
-    '''
-    Given inp path to pRCC dataset return the full dataset with transforms
-
-    :param inp_path:
-    :return:
-    '''
-    pRCC_dataset = get_dataset(inp_path, transforms_basic)
-    pRCC_dataset_with_augmentation_1 = get_dataset(inp_path, transforms_pRCC_flips)
-    pRCC_dataset_with_augmentation_2 = get_dataset(inp_path, transforms_pRCC_rotations)
-    pRCC_dataset_with_augmentation_3 = get_dataset(inp_path, transforms_pRCC_flips_and_rotations)
-    return ConcatDataset([pRCC_dataset, pRCC_dataset_with_augmentation_1, pRCC_dataset_with_augmentation_2, pRCC_dataset_with_augmentation_3])
+from torchvision.datasets import ImageFolder
 
 
-def get_pRCC_dataloaders(inp_path):
-    '''
-    Given the inp path to the pRCC dataset return the train, test and val dataloaders
+class pRCCDataset:
+    def __init__(self, path, batch_size=pRCC_batch_size, resize_to=pRCC_img_resize_target, test_split=test_split, validation_split=validation_split):
+        # constants
+        self.path = path
+        self.test_split = test_split
+        self.validation_split = validation_split
+        self.resize_to = resize_to
+        self.batch_size = batch_size
 
-    :param inp_path:
-    :return:
-    '''
-    pRCC_dataset = get_pRCC_dataset(inp_path)
+        # transformations
+        self.transforms = [
+            # basic transformation
+            transforms.Compose([
+                transforms.Resize((resize_to, resize_to)),  # Resize images to a fixed size
+                transforms.ToTensor(),
+                transforms.Normalize(*stats)
+            ]),
+            # transformation with flips
+            transforms.Compose([
+                transforms.Resize((resize_to, resize_to)),
+                transforms.RandomHorizontalFlip(),
+                transforms.RandomVerticalFlip(),
+                transforms.ToTensor(),
+                transforms.Normalize(*stats)
+            ]),
+            # transformation with rotation
+            transforms.Compose([
+                transforms.Resize((resize_to, resize_to)),
+                transforms.RandomRotation(degrees=15),
+                transforms.ToTensor(),
+                transforms.Normalize(*stats)
+            ]),
+            # transformation with rotation & flips
+            transforms.Compose([
+                transforms.Resize((resize_to, resize_to)),
+                transforms.RandomRotation(degrees=15),
+                transforms.RandomVerticalFlip(),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                transforms.Normalize(*stats)
+            ])
+        ]
 
-    # Calculate the number of samples to use for validation
-    num_total_samples = len(pRCC_dataset)
+        # create dataset
+        self.dataset = self.construct_dataset_with_augmentation()
 
-    # find the no of train samples
-    num_test_samples = int(num_total_samples * test_split)
-    num_train_samples = num_total_samples - num_test_samples
+    def get_dataset(self, transformation):
+        '''
+        Given a folder with sub folders containing images, get all the images along with applying transformations
 
-    num_validation_samples = int(num_test_samples * validation_split)
-    num_test_samples = num_test_samples - num_validation_samples
+        :param inp_path:
+        :param transformations:
+        :return:
+        '''
+        return ImageFolder(root=self.path, transform=transformation)
 
-    # Split the full dataset into train and test sets
-    train_dataset, test_dataset, validation_dataset = random_split(pRCC_dataset, [num_train_samples, num_test_samples, num_validation_samples])
+    def construct_dataset_with_augmentation(self):
+        '''
 
-    # Create DataLoaders for validation and test sets
-    train_loader = DataLoader(train_dataset, batch_size=pRCC_batch_size, shuffle=True)
-    test_loader = DataLoader(test_dataset, batch_size=pRCC_batch_size, shuffle=True)
-    validation_loader = DataLoader(validation_dataset, batch_size=pRCC_batch_size, shuffle=True)
+        :return: Concatenated dataset with all augmentations
+        '''
+        augmentations = []
+        for transformation in self.transforms:
+            augmentations.append(self.get_dataset(transformation))
+        return ConcatDataset(augmentations)
 
-    return train_loader, test_loader, validation_loader
+    def get_dataloaders(self):
+        '''
+
+        :return: the Train, Val and test dataloaders
+        '''
+        # Calculate the number of samples to use for validation
+        num_total_samples = len(self.dataset)
+
+        # find the no of train samples
+        num_test_samples = int(num_total_samples * test_split)
+        num_train_samples = num_total_samples - num_test_samples
+
+        num_validation_samples = int(num_test_samples * validation_split)
+        num_test_samples = num_test_samples - num_validation_samples
+
+        # Split the full dataset into train and test sets
+        train_dataset, test_dataset, validation_dataset = random_split(self.dataset, [num_train_samples, num_test_samples, num_validation_samples])
+
+        # Create DataLoaders for validation and test sets
+        train_loader = DataLoader(train_dataset, batch_size=self.batch_size, shuffle=True)
+        test_loader = DataLoader(test_dataset, batch_size=self.batch_size, shuffle=True)
+        validation_loader = DataLoader(validation_dataset, batch_size=self.batch_size, shuffle=True)
+
+        return train_loader, test_loader, validation_loader
 
 
 if __name__ == '__main__':
     path = os.path.abspath("../datasets/pRCC/")
-    get_pRCC_dataloaders(path)
+    pRCC = pRCCDataset(path)
+    pRCC.get_dataloaders()
