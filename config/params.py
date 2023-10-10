@@ -7,8 +7,7 @@ run_in_local = True
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # 2. CONSTANTS
 
-# device=torch.device("cuda" if torch.cuda.is_available() else "cpu")
-device = torch.device("cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 test_split = 0.2
 validation_split = 0.4

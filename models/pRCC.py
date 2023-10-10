@@ -1,6 +1,7 @@
 import torch
 from torchinfo import summary
 import torch.nn as nn
+import config.params as config
 
 class pRCCUnetAutoencoder(nn.Module):
     def __init__(self, latent_dim_size=2048):
@@ -28,7 +29,8 @@ class pRCCUnetAutoencoder(nn.Module):
         encode_1 = self.encode_conv_5(encode_2)  # Shape: (batchsize, 256, 32, 32)
 
         # Decoding
-        decode_1 = self.decoding_step(encode_1, 256, 256)  # Output is now in decode_1 with shape (batchsize, 256, 64, 64)
+        decode_1 = self.decoding_step(encode_1, 256,
+                                      256)  # Output is now in decode_1 with shape (batchsize, 256, 64, 64)
         decode_2 = self.decoding_step(decode_1 + encode_2, 256, 128)  # Shape: (batchsize, 128, 128, 128)
         decode_3 = self.decoding_step(decode_2 + encode_3, 128, 64)  # Shape: (batchsize, 64, 256, 256)
         decode_4 = self.decoding_step(decode_3 + encode_4, 64, 32)  # Shape: (batchsize, 32, 512, 512)
@@ -51,25 +53,27 @@ class pRCCUnetAutoencoder(nn.Module):
         )
 
     def decoding_step(self, x, in_channels, out_channels, ct_padding=0, conv_padding=1):
-        x = nn.ConvTranspose2d(in_channels=in_channels, out_channels=out_channels, kernel_size=2, stride=2, padding=ct_padding)(x)  # Upsample
-        x = nn.Conv2d(in_channels=out_channels, out_channels=out_channels, kernel_size=3, padding=conv_padding)(x)  # Convolution
-        x = nn.ReLU(inplace=True)(x)  # ReLU activation
+        #need to explicitly move the convTranspose to correct device!
+        x = nn.ConvTranspose2d(in_channels=in_channels, out_channels=out_channels, kernel_size=2, stride=2,
+                               padding=ct_padding).to(config.device)(x)  # Upsample
+        x = nn.Conv2d(in_channels=out_channels, out_channels=out_channels, kernel_size=3, padding=conv_padding)\
+            .to(config.device)(x)  # Convolution
+        x = nn.ReLU(inplace=True).to(config.device)(x)  # ReLU activation
         return x
 
     def linear_latent(self, x):
         # Apply pooling to reduce dimensions
-        x = nn.AvgPool2d(kernel_size=2)(x)  # Shape: (batchsize, 256, 16, 16)
-        x = nn.MaxPool2d(kernel_size=2)(x)  # Shape: (batchsize, 256, 8, 8)
-        x = nn.AdaptiveMaxPool2d((4, 4))(x)  # Shape: (batchsize, 256, 4, 4)
+        x = nn.AvgPool2d(kernel_size=2).to(config.device)(x)  # Shape: (batchsize, 256, 16, 16)
+        x = nn.MaxPool2d(kernel_size=2).to(config.device)(x)  # Shape: (batchsize, 256, 8, 8)
+        x = nn.AdaptiveMaxPool2d((4, 4)).to(config.device)(x)  # Shape: (batchsize, 256, 4, 4)
 
         # Flatten the tensor
-        x = nn.Flatten()(x)  # Shape: (batchsize, 256 * 4 * 4)
+        x = nn.Flatten().to(config.device)(x)  # Shape: (batchsize, 256 * 4 * 4)
 
         # Apply linear layers to further reduce dimensions
-        x = nn.Linear(256 * 4 * 4, 4096)(x)  # Shape: (batchsize, 4096)
-        x = nn.Linear(4096, self.latent_dim_size)(x)  # Shape: (batchsize, 2048)
+        x = nn.Linear(256 * 4 * 4, 4096).to(config.device)(x)  # Shape: (batchsize, 4096)
+        x = nn.Linear(4096, self.latent_dim_size).to(config.device)(x)  # Shape: (batchsize, 2048)
         return x
-
 
 # if __name__ == '__main__':
 #     # Example usage:

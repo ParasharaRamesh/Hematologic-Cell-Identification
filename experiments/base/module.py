@@ -34,9 +34,6 @@ class Module:
         self.device = device
         self.batch_size = self.dataset.batch_size
 
-        # move model to device
-        self.model.to(self.device)
-
         # get loaders (each of which already moves tensors to device)
         self.train_loader, self.test_loader, self.val_loader = self.dataset.get_dataloaders()
 

@@ -79,7 +79,7 @@ class pRCCModule(Module):
 
         with torch.no_grad():
             for val_batch_idx, val_data in enumerate(self.val_loader):
-                val_images = val_data
+                val_images, _ = val_data
                 _, val_predictions = self.model(val_images)
 
                 # Validation loss update
@@ -142,7 +142,7 @@ class pRCCModule(Module):
 
         with torch.no_grad():
             for val_batch_idx, val_data in enumerate(self.test_loader):
-                test_images = val_data
+                test_images, _ = val_data
                 _, test_predictions = self.model(test_images)
 
                 # Validation loss update
