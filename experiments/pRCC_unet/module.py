@@ -2,15 +2,15 @@ import os
 import random
 import torch
 from pytorch_msssim import SSIM
-import config
-from scripts.module import Module
+import config.params as config
+from experiments.base.module import Module
 from utils.loss import ssim_loss
 import matplotlib.pyplot as plt
 
 
 class pRCCModule(Module):
-    def __init__(self, name, dataset, model, loss_criterion, save_dir):
-        super().__init__(name, dataset, model, loss_criterion, save_dir)
+    def __init__(self, name, dataset, model, save_dir):
+        super().__init__(name, dataset, model, save_dir)
 
         # structured similarity index
         self.loss_criterion = SSIM()
@@ -22,22 +22,24 @@ class pRCCModule(Module):
         self.validation_losses = []
 
     # hooks
-    def init_params_from_checkpoint_hook(self, resume_epoch_num):
-        checkpoint_path = self.get_model_checkpoint_path(resume_epoch_num)
-        checkpoint = torch.load(checkpoint_path)
+    def init_params_from_checkpoint_hook(self, load_from_checkpoint, resume_epoch_num):
+        if load_from_checkpoint:
+            #NOTE: resume_epoch_num can be None here if we want to load from the most recently saved checkpoint!
+            checkpoint_path = self.get_model_checkpoint_path(resume_epoch_num)
+            checkpoint = torch.load(checkpoint_path)
 
-        # load previous state
-        self.model.load_state_dict(checkpoint['model_state_dict'])
-        self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-        self.scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
+            # load previous state
+            self.model.load_state_dict(checkpoint['model_state_dict'])
+            self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+            self.scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
 
-        # Things we are keeping track of
-        self.start_epoch = checkpoint['epoch']
-        self.epoch_numbers = checkpoint['epoch_numbers']
-        self.training_losses = checkpoint['training_losses']
-        self.validation_losses = checkpoint['validation_losses']
+            # Things we are keeping track of
+            self.start_epoch = checkpoint['epoch']
+            self.epoch_numbers = checkpoint['epoch_numbers']
+            self.training_losses = checkpoint['training_losses']
+            self.validation_losses = checkpoint['validation_losses']
 
-        print(f"Model checkpoint for {self.name} is loaded from {checkpoint_path}!")
+            print(f"Model checkpoint for {self.name} is loaded from {checkpoint_path}!")
 
     def init_scheduler_hook(self, num_epochs):
         # optimizer is already defined in the super class constructor at this point

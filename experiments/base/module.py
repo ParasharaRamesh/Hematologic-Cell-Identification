@@ -13,7 +13,7 @@ import config.params as config
 
 
 class Module:
-    def __init__(self, name, dataset, model, loss_criterion, save_dir, device=config.device):
+    def __init__(self, name, dataset, model, save_dir, device=config.device):
         '''
 
         :param name: name of the experiement
@@ -25,8 +25,12 @@ class Module:
         self.name = name
         self.dataset = dataset
         self.save_dir = save_dir
+
+        # create the directory if it doesnt exist!
+        os.makedirs(self.save_dir, exist_ok=True)
+        os.makedirs(os.path.join(self.save_dir, self.name), exist_ok=True)
+
         self.model = model
-        self.loss_criterion = loss_criterion
         self.device = device
         self.batch_size = self.dataset.batch_size
 
@@ -34,7 +38,7 @@ class Module:
         self.model.to(self.device)
 
         # get loaders (each of which already moves tensors to device)
-        self.train_loader, self.test_loader, self.val_loader = self.dataset.get_loaders()
+        self.train_loader, self.test_loader, self.val_loader = self.dataset.get_dataloaders()
 
         # Adam optimizer
         self.optimizer = optim.Adam(self.model.parameters(), lr=config.learning_rate, weight_decay=config.weight_decay)
@@ -59,11 +63,17 @@ class Module:
         return os.path.join(directory, model_file)
 
     # main train code
-    def train(self, num_epochs, resume_epoch_num=None, epoch_saver_count=2, rest_epoch_count=False):
+    def train(self,
+              num_epochs,
+              resume_epoch_num=None,
+              load_from_checkpoint=False,
+              epoch_saver_count=2,
+              rest_epoch_count=False):
         '''
 
         :param num_epochs:
         :param resume_epoch_num: just the name of the model checkpoint
+        :param load_from_checkpoint: boolean indicating if we need to load from checkpoint or not
         :param epoch_saver_count:
         :param rest_epoch_count:
         :return:
@@ -74,7 +84,7 @@ class Module:
         self.init_scheduler_hook(num_epochs)
 
         # initialize the params from the saved checkpoint
-        self.init_params_from_checkpoint_hook(resume_epoch_num)
+        self.init_params_from_checkpoint_hook(load_from_checkpoint, resume_epoch_num)
 
         # Custom progress bar for total epochs with color and displaying average epoch loss
         total_progress_bar = tqdm(
@@ -167,7 +177,7 @@ class Module:
         return self.get_current_running_history_state_hook()
 
     # hooks
-    def init_params_from_checkpoint_hook(self, resume_checkpoint):
+    def init_params_from_checkpoint_hook(self, load_from_checkpoint, resume_checkpoint):
         raise NotImplementedError("Need to implement hook for initializing params from checkpoint")
 
     def init_scheduler_hook(self, num_epochs):

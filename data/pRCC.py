@@ -1,13 +1,12 @@
-from config.params import *
+import config.params as config
 from torch.utils.data import Dataset, DataLoader, ConcatDataset, random_split
 import os
 from torchvision.datasets import ImageFolder
-
 from data.common import DeviceDataLoader
-
+from torchvision import transforms
 
 class pRCCDataset:
-    def __init__(self, path, batch_size=pRCC_batch_size, resize_to=pRCC_img_resize_target, test_split=test_split, validation_split=validation_split):
+    def __init__(self, path, batch_size=config.pRCC_batch_size, resize_to=config.pRCC_img_resize_target, test_split=config.test_split, validation_split=config.validation_split):
         # constants
         self.path = path
         self.test_split = test_split
@@ -21,7 +20,7 @@ class pRCCDataset:
             transforms.Compose([
                 transforms.Resize((resize_to, resize_to)),  # Resize images to a fixed size
                 transforms.ToTensor(),
-                transforms.Normalize(*stats)
+                transforms.Normalize(*config.stats)
             ]),
             # transformation with flips
             transforms.Compose([
@@ -29,14 +28,14 @@ class pRCCDataset:
                 transforms.RandomHorizontalFlip(),
                 transforms.RandomVerticalFlip(),
                 transforms.ToTensor(),
-                transforms.Normalize(*stats)
+                transforms.Normalize(*config.stats)
             ]),
             # transformation with rotation
             transforms.Compose([
                 transforms.Resize((resize_to, resize_to)),
                 transforms.RandomRotation(degrees=15),
                 transforms.ToTensor(),
-                transforms.Normalize(*stats)
+                transforms.Normalize(*config.stats)
             ]),
             # transformation with rotation & flips
             transforms.Compose([
@@ -45,7 +44,7 @@ class pRCCDataset:
                 transforms.RandomVerticalFlip(),
                 transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
-                transforms.Normalize(*stats)
+                transforms.Normalize(*config.stats)
             ])
         ]
 
@@ -81,21 +80,17 @@ class pRCCDataset:
         num_total_samples = len(self.dataset)
 
         # find the no of train samples
-        num_test_samples = int(num_total_samples * test_split)
+        num_test_samples = int(num_total_samples * self.test_split)
         num_train_samples = num_total_samples - num_test_samples
 
-        num_validation_samples = int(num_test_samples * validation_split)
+        num_validation_samples = int(num_test_samples * self.validation_split)
         num_test_samples = num_test_samples - num_validation_samples
 
         # Split the full dataset into train and test sets
         train_dataset, test_dataset, validation_dataset = random_split(self.dataset, [num_train_samples, num_test_samples, num_validation_samples])
 
         # Create DataLoaders for validation and test sets
-        train_loader = DataLoader(train_dataset, batch_size=self.batch_size, shuffle=True)
-        test_loader = DataLoader(test_dataset, batch_size=self.batch_size, shuffle=True)
-        validation_loader = DataLoader(validation_dataset, batch_size=self.batch_size, shuffle=True)
-
-        return DeviceDataLoader(train_loader), DeviceDataLoader(test_loader), DeviceDataLoader(validation_loader)
+        return DeviceDataLoader(train_dataset, self.batch_size), DeviceDataLoader(test_dataset, self.batch_size), DeviceDataLoader(validation_dataset, self.batch_size)
 
 
 if __name__ == '__main__':
