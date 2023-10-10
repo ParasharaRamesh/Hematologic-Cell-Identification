@@ -71,8 +71,10 @@ class pRCCUnetAutoencoder(nn.Module):
         return x
 
 
-if __name__ == '__main__':
-    # Example usage:
-    autoencoder = pRCCUnetAutoencoder()
-    autoencoder.to("cpu")
-    summary(autoencoder, input_size=(3, 1024, 1024), device="cpu", batch_dim=0, col_names=["input_size", "output_size", "num_params", "kernel_size", "mult_adds"], verbose=1)
+# if __name__ == '__main__':
+#     # Example usage:
+#     autoencoder = pRCCUnetAutoencoder()
+#     autoencoder.to("cpu")
+#     summary(autoencoder, input_size=(3, 512, 512), device="cpu", batch_dim=0, col_names=["input_size", "output_size", "num_params", "kernel_size", "mult_adds"], verbose=1)
+#     input_tensor = torch.randn(1, 3, 512, 512)
+#     latent, output = autoencoder(input_tensor)

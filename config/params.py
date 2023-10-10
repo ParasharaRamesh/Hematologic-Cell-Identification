@@ -7,7 +7,8 @@ run_in_local = True
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # 2. CONSTANTS
 
-device=torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# device=torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cpu")
 
 test_split = 0.2
 validation_split = 0.4
@@ -16,16 +17,13 @@ learning_rate = 0.01
 weight_decay = 1e-4
 grad_clip = 0.1
 
-pRCC_batch_size = 8
-pRCC_img_resize_target = 1024  # from 2000 -> 1024
+pRCC_batch_size = 2
+pRCC_img_resize_target = 512  # from 2000 -> 512 ( Too big to fit on machine!)
 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # 3. TRANSFORMS
 
 # constants
 stats = ((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
-
-
-
 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

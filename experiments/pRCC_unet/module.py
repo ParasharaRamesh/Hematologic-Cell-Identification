@@ -24,7 +24,7 @@ class pRCCModule(Module):
     # hooks
     def init_params_from_checkpoint_hook(self, load_from_checkpoint, resume_epoch_num):
         if load_from_checkpoint:
-            #NOTE: resume_epoch_num can be None here if we want to load from the most recently saved checkpoint!
+            # NOTE: resume_epoch_num can be None here if we want to load from the most recently saved checkpoint!
             checkpoint_path = self.get_model_checkpoint_path(resume_epoch_num)
             checkpoint = torch.load(checkpoint_path)
 
@@ -52,8 +52,8 @@ class pRCCModule(Module):
         print(f"Initialized scheduler")
 
     def calculate_loss_hook(self, data):
-        images = data
-        predictions = self.model(images)
+        images, _ = data
+        latent_encoding, predictions = self.model(images)
         loss = ssim_loss(self.loss_criterion, images, predictions)
         return loss
 
@@ -80,7 +80,7 @@ class pRCCModule(Module):
         with torch.no_grad():
             for val_batch_idx, val_data in enumerate(self.val_loader):
                 val_images = val_data
-                val_predictions = self.model(val_images)
+                _, val_predictions = self.model(val_images)
 
                 # Validation loss update
                 val_loss += ssim_loss(self.loss_criterion, val_images, val_predictions).item()
@@ -143,7 +143,7 @@ class pRCCModule(Module):
         with torch.no_grad():
             for val_batch_idx, val_data in enumerate(self.test_loader):
                 test_images = val_data
-                test_predictions = self.model(test_images)
+                _, test_predictions = self.model(test_images)
 
                 # Validation loss update
                 test_loss += ssim_loss(self.loss_criterion, test_images, test_predictions).item()
