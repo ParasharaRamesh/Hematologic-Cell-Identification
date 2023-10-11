@@ -19,6 +19,9 @@ grad_clip = 0.1
 pRCC_batch_size = 16
 pRCC_img_resize_target = 512  # from 2000 -> 512 ( Too big to fit on machine!)
 
+cam_batch_size = 16
+pRCC_img_resize_target = 384
+
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # 3. TRANSFORMS
 
