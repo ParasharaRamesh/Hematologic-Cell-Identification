@@ -7,8 +7,9 @@ import numpy as np
 import config.params as config
 from data.common import DeviceDataLoader
 from experiments.base.module import Module
-from utils.loss import ssim_loss
+from utils.loss import SSIMLoss
 import matplotlib.pyplot as plt
+from torch import nn
 
 
 class pRCCModule(Module):
@@ -16,7 +17,10 @@ class pRCCModule(Module):
         super().__init__(name, dataset, model, save_dir)
 
         # structured similarity index
-        self.loss_criterion = SSIM()
+        self.loss_criterion = SSIMLoss()
+
+        #L2 Loss
+        # self.loss_criterion = nn.MSELoss()
 
         # Values which can change based on loaded checkpoint
         self.start_epoch = 0
@@ -51,12 +55,15 @@ class pRCCModule(Module):
             epochs=num_epochs,
             steps_per_epoch=len(self.train_loader)
         )
-        print(f"Initialized scheduler")
+        # print(f"Initialized scheduler")
 
     def calculate_loss_hook(self, data):
         images, _ = data
         latent_encoding, predictions = self.model(images)
-        loss = ssim_loss(self.loss_criterion, images, predictions)
+        #trying a L2 loss
+        loss = self.loss_criterion(images, predictions)
+
+        # loss = ssim_loss(self.loss_criterion, images, predictions)
         return loss
 
     def calculate_train_batch_stats_hook(self):
@@ -85,7 +92,10 @@ class pRCCModule(Module):
                 _, val_predictions = self.model(val_images)
 
                 # Validation loss update
-                val_loss += ssim_loss(self.loss_criterion, val_images, val_predictions).item()
+                # val_loss += ssim_loss(self.loss_criterion, val_images, val_predictions).item()
+
+                #L2 Loss
+                val_loss += self.loss_criterion(val_images, val_predictions).item()
 
         # Calculate average validation loss for the epoch
         avg_val_loss_for_epoch = val_loss / len(self.val_loader)
@@ -103,6 +113,7 @@ class pRCCModule(Module):
         self.validation_losses.append(avg_val_stats["avg_val_loss_for_epoch"])
 
     def calculate_and_print_epoch_stats_hook(self, avg_train_stats, avg_val_stats):
+        print(f"Epoch loss: {avg_train_stats['avg_training_loss']} | Val loss: {avg_val_stats['avg_val_loss_for_epoch']}")
         return {
             "epoch_loss": avg_train_stats["avg_training_loss"],
             "val_loss": avg_val_stats["avg_val_loss_for_epoch"]
@@ -147,7 +158,10 @@ class pRCCModule(Module):
                 _, test_predictions = self.model(test_images)
 
                 # Validation loss update
-                test_loss += ssim_loss(self.loss_criterion, test_images, test_predictions).item()
+                # test_loss += ssim_loss(self.loss_criterion, test_images, test_predictions).item()
+
+                #trying L2 loss
+                test_loss += self.loss_criterion(test_images, test_predictions).item()
 
         # Calculate average validation loss for the epoch
         avg_test_loss = test_loss / len(self.test_loader)
@@ -160,7 +174,7 @@ class pRCCModule(Module):
         }
 
     # util code
-    def show_sample_reconstructions(self, dataloader, num_samples=2):
+    def show_sample_reconstructions(self, dataloader, num_samples=1):
         self.model.eval()
 
         # Get random samples
@@ -187,24 +201,15 @@ class pRCCModule(Module):
                 predicted_image = predicted_image.permute(1, 2, 0).numpy().astype(np.uint8)
                 sample_image = sample_image.permute(1, 2, 0).numpy().astype(np.uint8)
 
-                if num_samples == 1:
-                    #special case
-                    axes[0].imshow(sample_image)
-                    axes[0].set_title(f"Original Image #{i + 1}", color='green')
-                    axes[0].axis('off')
+                axes[0].imshow(sample_image)
+                axes[0].set_title(f"Sample Original Image", color='green')
+                axes[0].axis('off')
 
-                    axes[1].imshow(predicted_image)
-                    axes[1].set_title(f"Reconstructed Image #{i + 1}", color='red')
-                    axes[1].axis('off')
-                else:
-                    axes[i, 0].imshow(sample_image)
-                    axes[i, 0].set_title(f"Original Image #{i + 1}", color='green')
-                    axes[i, 0].axis('off')
-                    axes[i, 0].set_title('off')
-
-                    axes[i, 1].imshow(predicted_image)
-                    axes[i, 1].set_title(f"Reconstructed Image #{i + 1}", color='red')
-                    axes[i, 1].axis('off')
+                axes[1].imshow(predicted_image)
+                axes[1].set_title(f"Sample Reconstructed Image", color='red')
+                axes[1].axis('off')
 
         plt.tight_layout()
         plt.show()
+
+

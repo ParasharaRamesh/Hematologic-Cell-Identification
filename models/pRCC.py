@@ -48,7 +48,6 @@ class pRCCUnetAutoencoder(nn.Module):
             nn.ReLU(inplace=True),
             nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
             nn.BatchNorm2d(out_channels),  # BatchNorm added
-            nn.ReLU(inplace=True),
             nn.AvgPool2d(kernel_size=2, stride=2),  # Always include avg pool
         )
 
@@ -58,7 +57,6 @@ class pRCCUnetAutoencoder(nn.Module):
                                padding=ct_padding).to(config.device)(x)  # Upsample
         x = nn.Conv2d(in_channels=out_channels, out_channels=out_channels, kernel_size=3, padding=conv_padding)\
             .to(config.device)(x)  # Convolution
-        x = nn.ReLU(inplace=True).to(config.device)(x)  # ReLU activation
         return x
 
     def linear_latent(self, x):
