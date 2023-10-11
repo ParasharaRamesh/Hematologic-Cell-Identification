@@ -3,6 +3,13 @@ from torchinfo import summary
 import torch.nn as nn
 import config.params as config
 
+'''
+TODO.
+1. add sigmoid instead of relu everywhere
+2. revisit the stats
+3. do more batch normalization
+
+'''
 class pRCCUnetAutoencoder(nn.Module):
     def __init__(self, latent_dim_size=2048):
         super().__init__()
