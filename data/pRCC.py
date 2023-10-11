@@ -4,8 +4,8 @@ import config.params as config
 from torch.utils.data import Dataset, DataLoader, ConcatDataset, random_split, Subset
 import os
 from torchvision.datasets import ImageFolder
-from data.common import DeviceDataLoader, create_mini_dataset
 from torchvision import transforms
+from data.common import DeviceDataLoader, create_mini_dataset
 
 class pRCCDataset:
     def __init__(self, path, batch_size=config.pRCC_batch_size, resize_to=config.pRCC_img_resize_target, test_split=config.test_split, validation_split=config.validation_split):

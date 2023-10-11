@@ -34,7 +34,6 @@ class pRCCModule(Module):
             # load previous state
             self.model.load_state_dict(checkpoint['model_state_dict'])
             self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-            self.scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
 
             # Things we are keeping track of
             self.start_epoch = checkpoint['epoch']
@@ -123,7 +122,6 @@ class pRCCModule(Module):
             {
                 'model_state_dict': self.model.state_dict(),
                 'optimizer_state_dict': self.optimizer.state_dict(),
-                'scheduler_state_dict': self.scheduler.state_dict(),
                 'epoch': epoch + 1,
                 'epoch_numbers': self.epoch_numbers,
                 'training_losses': self.training_losses,
@@ -162,7 +160,7 @@ class pRCCModule(Module):
         }
 
     # util code
-    def show_sample_reconstructions(self, dataloader, num_samples=1):
+    def show_sample_reconstructions(self, dataloader, num_samples=2):
         self.model.eval()
 
         # Get random samples

@@ -64,24 +64,22 @@ class Module:
               num_epochs,
               resume_epoch_num=None,
               load_from_checkpoint=False,
-              epoch_saver_count=2,
-              rest_epoch_count=False):
+              epoch_saver_count=2):
         '''
 
         :param num_epochs:
         :param resume_epoch_num: just the name of the model checkpoint
         :param load_from_checkpoint: boolean indicating if we need to load from checkpoint or not
         :param epoch_saver_count:
-        :param rest_epoch_count:
         :return:
         '''
         torch.cuda.empty_cache()
 
-        # set up scheduler
-        self.init_scheduler_hook(num_epochs)
-
         # initialize the params from the saved checkpoint
         self.init_params_from_checkpoint_hook(load_from_checkpoint, resume_epoch_num)
+
+        # set up scheduler
+        self.init_scheduler_hook(num_epochs)
 
         # Custom progress bar for total epochs with color and displaying average epoch loss
         total_progress_bar = tqdm(
