@@ -62,8 +62,10 @@ class pRCCDataset:
         :return:
         '''
         image_folder =  ImageFolder(root=self.path, transform=transformation)
+
         #Uncomment for local testing
         # image_folder = create_mini_dataset(image_folder, 5)
+
         return image_folder
 
     def construct_dataset_with_augmentation(self):
