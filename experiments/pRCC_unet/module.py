@@ -60,10 +60,7 @@ class pRCCModule(Module):
     def calculate_loss_hook(self, data):
         images, _ = data
         latent_encoding, predictions = self.model(images)
-        #trying a L2 loss
         loss = self.loss_criterion(images, predictions)
-
-        # loss = ssim_loss(self.loss_criterion, images, predictions)
         return loss
 
     def calculate_train_batch_stats_hook(self):
@@ -91,10 +88,6 @@ class pRCCModule(Module):
                 val_images, _ = val_data
                 _, val_predictions = self.model(val_images)
 
-                # Validation loss update
-                # val_loss += ssim_loss(self.loss_criterion, val_images, val_predictions).item()
-
-                #L2 Loss
                 val_loss += self.loss_criterion(val_images, val_predictions).item()
 
         # Calculate average validation loss for the epoch
@@ -157,10 +150,6 @@ class pRCCModule(Module):
                 test_images, _ = val_data
                 _, test_predictions = self.model(test_images)
 
-                # Validation loss update
-                # test_loss += ssim_loss(self.loss_criterion, test_images, test_predictions).item()
-
-                #trying L2 loss
                 test_loss += self.loss_criterion(test_images, test_predictions).item()
 
         # Calculate average validation loss for the epoch
