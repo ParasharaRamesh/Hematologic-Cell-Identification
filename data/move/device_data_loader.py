@@ -31,9 +31,5 @@ class DeviceDataLoader(DataLoader):
             return batch
 
 
-
-
-# TODO.1 write code given a dataset, find the corresponding image, apply mask and save it in a folder
-
 if __name__ == '__main__':
     pass
