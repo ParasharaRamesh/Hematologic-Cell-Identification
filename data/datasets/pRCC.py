@@ -1,11 +1,9 @@
-import torch
-
 import config.params as config
-from torch.utils.data import Dataset, DataLoader, ConcatDataset, random_split, Subset
+from torch.utils.data import ConcatDataset, random_split
 import os
 from torchvision.datasets import ImageFolder
 from torchvision import transforms
-from data.common import DeviceDataLoader, create_mini_dataset
+from data.move.device_data_loader import DeviceDataLoader
 
 class pRCCDataset:
     def __init__(self, path, batch_size=config.pRCC_batch_size, resize_to=config.pRCC_img_resize_target, test_split=config.test_split, validation_split=config.validation_split):
@@ -64,7 +62,7 @@ class pRCCDataset:
         image_folder =  ImageFolder(root=self.path, transform=transformation)
 
         #Uncomment for local testing
-        # image_folder = create_mini_dataset(image_folder, 5)
+        # image_folder = LocalDebug.create_mini_dataset(image_folder, 5)
 
         return image_folder
 
@@ -101,6 +99,6 @@ class pRCCDataset:
 
 
 if __name__ == '__main__':
-    path = os.path.abspath("../datasets/pRCC/")
+    path = os.path.abspath("../../datasets/pRCC/")
     pRCC = pRCCDataset(path)
     pRCC.get_dataloaders()

@@ -1,10 +1,9 @@
-import torch
 import config.params as config
-from torch.utils.data import Dataset, DataLoader, ConcatDataset, random_split, Subset
+from torch.utils.data import ConcatDataset, random_split
 import os
 from torchvision.datasets import ImageFolder
 from torchvision import transforms
-from data.common import DeviceDataLoader, create_mini_dataset
+from data.move.device_data_loader import DeviceDataLoader
 
 
 # This dataset is balanced so no need to do any fancy things
@@ -156,6 +155,6 @@ class CamelyonDataset:
 
 
 if __name__ == '__main__':
-    path = os.path.abspath("../datasets/CAM16_100cls_10mask")
+    path = os.path.abspath("../../datasets/CAM16_100cls_10mask")
     cam = CamelyonDataset(path)
     cam.get_train_dataset(None)
