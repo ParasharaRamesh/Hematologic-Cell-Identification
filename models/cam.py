@@ -3,18 +3,12 @@ from torchinfo import summary
 import torch.nn as nn
 import config.params as config
 
-'''
-TODO.
-
-
-'''
-
 
 class CamelyonClassifier(nn.Module):
     def __init__(self, num_classes=2):
         super().__init__()
 
-        self.num_classes = 2
+        self.num_classes = num_classes
 
         self.conv1 = self.conv_and_batch_norm_block(3, 64)
         self.conv2 = self.conv_and_batch_norm_block(64, 128, pool=True)
@@ -65,6 +59,7 @@ class CamelyonClassifier(nn.Module):
 if __name__ == '__main__':
     # Example usage:
     cam = CamelyonClassifier().to(config.device)
-    summary(cam, input_size=(3, 256, 256), device=config.device, batch_dim=0, col_names=["input_size", "output_size", "num_params", "kernel_size", "mult_adds"], verbose=1)
+    summary(cam, input_size=(3, 256, 256), device=config.device, batch_dim=0,
+            col_names=["input_size", "output_size", "num_params", "kernel_size", "mult_adds"], verbose=1)
     # input_tensor = torch.randn(1, 3, 256, 256).to(config.device)
     # output = cam(input_tensor)
