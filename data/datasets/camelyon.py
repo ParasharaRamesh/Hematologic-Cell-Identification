@@ -17,8 +17,8 @@ class CamelyonDataset:
         self.batch_size = batch_size
 
         # paths
-        self.train_data_path = "train/data"
-        self.train_mask_path = "train/mask"
+        self.train_data_path = os.path.join(self.path, "data")
+        self.train_mask_path = os.path.join(self.path, "mask")
         self.test_path = "test"
         self.val_path = "val"
 
@@ -68,8 +68,8 @@ class CamelyonDataset:
         :param transformations:
         :return:
         '''
-        data_folder = ImageFolder(root=f"{self.path}/{self.train_data_path}", transform=transforms.ToTensor())
-        mask_folder = ImageFolder(root=f"{self.path}/{self.train_mask_path}", transform=transforms.ToTensor())
+        data_folder = ImageFolder(root=self.train_data_path, transform=transforms.ToTensor())
+        mask_folder = ImageFolder(root=self.train_mask_path, transform=transforms.ToTensor())
 
         # Uncomment for local testing
         # image_folder = create_mini_dataset(image_folder, 5)
@@ -110,7 +110,6 @@ class CamelyonDataset:
         :param transformations:
         :return:
         '''
-        # TODO.x getting only tensor
         image_folder = ImageFolder(root=f"{self.path}/{self.val_path}", transform=transforms.ToTensor())
 
         # Uncomment for local testing
@@ -155,6 +154,6 @@ class CamelyonDataset:
 
 
 if __name__ == '__main__':
-    path = os.path.abspath("../../datasets/CAM16_100cls_10mask")
+    path = os.path.abspath("../../datasets/CAM16_100cls_10mask/train")
     cam = CamelyonDataset(path)
     cam.get_train_dataset(None)
