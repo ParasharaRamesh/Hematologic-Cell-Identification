@@ -10,7 +10,7 @@ run_in_local = True
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 test_split = 0.2
-validation_split = 0.4
+validation_split = 0.3
 
 learning_rate = 0.01
 weight_decay = 1e-4
@@ -20,8 +20,10 @@ pRCC_batch_size = 16
 pRCC_img_resize_target = 512  # from 2000 -> 512 ( Too big to fit on machine!)
 
 cam_batch_size = 16
-pRCC_img_resize_target = 384
+cam_img_resize_target = 256 # from 384 -> 256
 
+wbc_batch_size = 16
+wbc_img_resize_target = 512 # from 575 -> 512
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # 3. TRANSFORMS
 
@@ -29,4 +31,5 @@ pRCC_img_resize_target = 384
 #computed from the pRCC dataset itself
 pRCC_stats = ((0.6843, 0.5012, 0.6436), (0.1962, 0.2372, 0.1771))
 cam_stats = ((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
+wbc_stats = ((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

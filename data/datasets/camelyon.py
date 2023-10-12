@@ -1,5 +1,5 @@
 import config.params as config
-from torch.utils.data import ConcatDataset, random_split
+from torch.utils.data import ConcatDataset
 import os
 from torchvision.datasets import ImageFolder
 from torchvision import transforms
@@ -8,10 +8,11 @@ from data.move.device_data_loader import DeviceDataLoader
 
 # This dataset is balanced so no need to do any fancy things
 class CamelyonDataset:
-    def __init__(self, path, batch_size=config.cam_batch_size):
+    def __init__(self, path, batch_size=config.cam_batch_size, resize_to=config.cam_img_resize_target):
         # constants
         self.path = path
         self.batch_size = batch_size
+        self.resize_to = resize_to
 
         # paths
         self.train_path = os.path.join(self.path, "train", "data")
@@ -21,6 +22,7 @@ class CamelyonDataset:
         # transformations
         self.eval_transforms = [
             transforms.Compose([
+                transforms.Resize((self.resize_to, self.resize_to)),
                 transforms.ToTensor(),
                 transforms.Normalize(*config.cam_stats),
             ])
@@ -31,6 +33,7 @@ class CamelyonDataset:
             *self.eval_transforms,
             # transformation with flips
             transforms.Compose([
+                transforms.Resize((self.resize_to, self.resize_to)),
                 transforms.RandomHorizontalFlip(),
                 transforms.RandomVerticalFlip(),
                 transforms.ToTensor(),
@@ -38,12 +41,14 @@ class CamelyonDataset:
             ]),
             # transformation with rotation
             transforms.Compose([
+                transforms.Resize((self.resize_to, self.resize_to)),
                 transforms.RandomRotation(degrees=15),
                 transforms.ToTensor(),
                 transforms.Normalize(*config.cam_stats)
             ]),
             # transformation with rotation & flips
             transforms.Compose([
+                transforms.Resize((self.resize_to, self.resize_to)),
                 transforms.RandomRotation(degrees=15),
                 transforms.RandomVerticalFlip(),
                 transforms.RandomHorizontalFlip(),
@@ -83,7 +88,6 @@ class CamelyonDataset:
 
         return image_folder
 
-
     def get_val_dataset(self):
         image_folder = ImageFolder(root=self.val_path, transform=self.eval_transforms)
 
@@ -91,7 +95,6 @@ class CamelyonDataset:
         # image_folder = create_mini_dataset(image_folder, 5)
 
         return image_folder
-
 
     def get_dataloaders(self):
         '''
@@ -101,7 +104,7 @@ class CamelyonDataset:
 
         # Create DataLoaders for validation and test sets
         return DeviceDataLoader(self.train_dataset, self.batch_size), DeviceDataLoader(self.test_dataset,
-                                                                                  self.batch_size), DeviceDataLoader(
+                                                                                       self.batch_size), DeviceDataLoader(
             self.validation_dataset, self.batch_size)
 
 

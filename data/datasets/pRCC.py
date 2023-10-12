@@ -13,18 +13,19 @@ class pRCCDataset:
         self.validation_split = validation_split
         self.resize_to = resize_to
         self.batch_size = batch_size
+        self.resize_to = resize_to
 
         # transformations
         self.transforms = [
             # basic transformation
             transforms.Compose([
-                transforms.Resize((resize_to, resize_to)),  # Resize images to a fixed size
+                transforms.Resize((self.resize_to, self.resize_to)),  # Resize images to a fixed size
                 transforms.ToTensor(),
                 transforms.Normalize(*config.pRCC_stats)
             ]),
             # transformation with flips
             transforms.Compose([
-                transforms.Resize((resize_to, resize_to)),
+                transforms.Resize((self.resize_to, self.resize_to)),
                 transforms.RandomHorizontalFlip(),
                 transforms.RandomVerticalFlip(),
                 transforms.ToTensor(),
@@ -32,14 +33,14 @@ class pRCCDataset:
             ]),
             # transformation with rotation
             transforms.Compose([
-                transforms.Resize((resize_to, resize_to)),
+                transforms.Resize((self.resize_to, self.resize_to)),
                 transforms.RandomRotation(degrees=15),
                 transforms.ToTensor(),
                 transforms.Normalize(*config.pRCC_stats)
             ]),
             # transformation with rotation & flips
             transforms.Compose([
-                transforms.Resize((resize_to, resize_to)),
+                transforms.Resize((self.resize_to, self.resize_to)),
                 transforms.RandomRotation(degrees=15),
                 transforms.RandomVerticalFlip(),
                 transforms.RandomHorizontalFlip(),
