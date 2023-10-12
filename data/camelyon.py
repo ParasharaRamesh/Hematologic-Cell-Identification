@@ -75,8 +75,16 @@ class CamelyonDataset:
         # Uncomment for local testing
         # image_folder = create_mini_dataset(image_folder, 5)
 
-        #TODO.x need to find out a way to apply a segmentation mask on the data folder!
+        '''
+        NOTES:
+        mask_folder.class_to_idx: normal->0, tumor->1
+        mask_folder.imgs -> [(path,class_idx),..]
+        
+        can apply segmentation mask on top by finding the corresponding index of the data_folder ( just index in os.listdir())... apply it.
+        
+        '''
 
+        #TODO.x need to find out a way to apply a segmentation mask on the data folder! and add it to the training data
         return data_folder, mask_folder
 
     def get_test_dataset(self, transformation):

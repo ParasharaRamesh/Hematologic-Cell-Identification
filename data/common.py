@@ -28,6 +28,8 @@ class DeviceDataLoader(DataLoader):
         else:
             return batch
 
+
+#Functions needed for local debugging
 def create_mini_dataset(dataset, num_samples):
     '''
     Function to be used locally for checking if the model runs or not!
@@ -63,3 +65,9 @@ def calculate_mean_and_std_of_dataset(dataset):
     std /= len(dataset)
 
     return (tuple(mean.tolist()), tuple(std.tolist()))
+
+
+#TODO.1 write code given a dataset, find the corresponding image, apply mask and save it in a folder
+
+if __name__ == '__main__':
+    pass
