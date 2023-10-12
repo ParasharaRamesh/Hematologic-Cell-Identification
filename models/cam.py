@@ -29,8 +29,11 @@ class CamelyonClassifier(nn.Module):
             nn.ReLU(),
             nn.Linear(256, 32),
             nn.ReLU(),
-            nn.Dropout(0.1),
-            nn.Linear(32, self.num_classes)
+            # nn.Dropout(0.1),
+            nn.Linear(32, 5),
+            nn.ReLU(),
+            # nn.Dropout(0.1),
+            nn.Linear(5, self.num_classes)
         )
 
     def conv_and_batch_norm_block(self, in_channels, out_channels, pool=False):
