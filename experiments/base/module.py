@@ -151,7 +151,9 @@ class Module:
             self.store_running_history_hook(epoch, avg_train_stats, avg_val_stats)
 
             # Show epoch stats (NOTE: Can clear the batch stats here)
+            print(f"# Epoch {epoch}")
             epoch_postfix = self.calculate_and_print_epoch_stats_hook(avg_train_stats, avg_val_stats)
+
 
             # Update the total progress bar
             total_progress_bar.set_postfix(epoch_postfix)
@@ -165,6 +167,8 @@ class Module:
                 print(f"Going to save model {self.name} @ Epoch:{epoch + 1}")
                 self.save_model_checkpoint_hook(epoch, avg_train_stats, avg_val_stats)
 
+            print("-" * 60)
+
         # Close the total progress bar
         total_progress_bar.close()
 
@@ -176,8 +180,13 @@ class Module:
         raise NotImplementedError("Need to implement hook for initializing params from checkpoint")
 
     def init_scheduler_hook(self, num_epochs):
-        raise NotImplementedError("Need to implement hook for creating a scheduler. If no scheduler is required don't write any implementation for it")
-
+        # optimizer is already defined in the super class constructor at this point
+        self.scheduler = torch.optim.lr_scheduler.OneCycleLR(
+            self.optimizer,
+            config.learning_rate,
+            epochs=num_epochs,
+            steps_per_epoch=len(self.train_loader)
+        )
     def calculate_loss_hook(self, data):
         raise NotImplementedError("Need to implement hook for computing the custom loss value")
 
@@ -185,13 +194,15 @@ class Module:
         raise NotImplementedError("Need to implement this hook for computing the batch statistics like accuracy")
 
     def calculate_avg_train_stats_hook(self):
-        raise NotImplementedError("Need to implement this hook for calculating train loss and train accuracy if applicable")
+        raise NotImplementedError(
+            "Need to implement this hook for calculating train loss and train accuracy if applicable")
 
     def validation_hook(self):
         raise NotImplementedError("Need to implement this hook to calculate the validation stats")
 
     def calculate_and_print_epoch_stats_hook(self):
-        raise NotImplementedError("Need to implement this hook to calculate and print the epoch statistics and return the postfix dictinoary")
+        raise NotImplementedError(
+            "Need to implement this hook to calculate and print the epoch statistics and return the postfix dictinoary")
 
     def store_running_history_hook(self, epoch, avg_train_stats, avg_val_stats):
         raise NotImplementedError("Need to implement this hook to store the running history of stats for each epoch")

@@ -100,6 +100,7 @@ class WBCDataset:
         # create dataset
         self.test_dataset, self.validation_dataset = self.get_test_val_datasets()
         self.train_dataset = self.get_train_dataset()
+        print("Datasets are initialized")
 
     def get_train_dataset(self):
         unbalanced_dataset = ImageFolder(root=self.train_path, transform=transforms.ToTensor())
@@ -167,7 +168,7 @@ class WBCDataset:
 
 
 if __name__ == '__main__':
-    train_path = os.path.abspath("../../datasets/modified/WBC_10")
+    train_path = os.path.abspath("../../datasets/modified/WBC_1")
     eval_path = os.path.abspath("../../datasets/modified/WBC_test")
     wbc = WBCDataset(train_path, eval_path)
     a, b, c = wbc.get_dataloaders()

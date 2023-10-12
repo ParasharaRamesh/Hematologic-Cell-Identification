@@ -16,7 +16,7 @@ class pRCCModule(Module):
         # structured similarity index
         self.loss_criterion = SSIMLoss()
 
-        #L2 Loss
+        # L2 Loss
         # self.loss_criterion = nn.MSELoss()
 
         # Values which can change based on loaded checkpoint
@@ -43,16 +43,6 @@ class pRCCModule(Module):
             self.validation_losses = checkpoint['validation_losses']
 
             print(f"Model checkpoint for {self.name} is loaded from {checkpoint_path}!")
-
-    def init_scheduler_hook(self, num_epochs):
-        # optimizer is already defined in the super class constructor at this point
-        self.scheduler = torch.optim.lr_scheduler.OneCycleLR(
-            self.optimizer,
-            config.learning_rate,
-            epochs=num_epochs,
-            steps_per_epoch=len(self.train_loader)
-        )
-        # print(f"Initialized scheduler")
 
     def calculate_loss_hook(self, data):
         images, _ = data
@@ -103,7 +93,8 @@ class pRCCModule(Module):
         self.validation_losses.append(avg_val_stats["avg_val_loss_for_epoch"])
 
     def calculate_and_print_epoch_stats_hook(self, avg_train_stats, avg_val_stats):
-        print(f"Epoch loss: {avg_train_stats['avg_training_loss']} | Val loss: {avg_val_stats['avg_val_loss_for_epoch']}")
+        print(
+            f"Epoch loss: {avg_train_stats['avg_training_loss']} | Val loss: {avg_val_stats['avg_val_loss_for_epoch']}")
         return {
             "epoch_loss": avg_train_stats["avg_training_loss"],
             "val_loss": avg_val_stats["avg_val_loss_for_epoch"]
@@ -197,5 +188,3 @@ class pRCCModule(Module):
 
         plt.tight_layout()
         plt.show()
-
-

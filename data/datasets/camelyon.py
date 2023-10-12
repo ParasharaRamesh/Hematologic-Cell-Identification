@@ -5,8 +5,12 @@ from torchvision.datasets import ImageFolder
 from torchvision import transforms
 from data.move.device_data_loader import DeviceDataLoader
 
+'''
+This dataset is balanced so no need to do any fancy things
+Here all there are only 2 classes normal:0 and tumor:1, we need to one hot encode it as well
 
-# This dataset is balanced so no need to do any fancy things
+'''
+
 class CamelyonDataset:
     def __init__(self, path, batch_size=config.cam_batch_size, resize_to=config.cam_img_resize_target):
         # constants
@@ -58,9 +62,9 @@ class CamelyonDataset:
         ]
 
         # create dataset
-        self.train_dataset = self.get_train_dataset_with_augmentation()
         self.validation_dataset = self.get_val_dataset()
         self.test_dataset = self.get_test_dataset()
+        self.train_dataset = self.get_train_dataset_with_augmentation()
 
     def get_train_dataset_with_augmentation(self):
         '''
