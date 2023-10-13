@@ -106,6 +106,8 @@ class WBCDataset:
         unbalanced_dataset = ImageFolder(root=self.train_path, transform=transforms.ToTensor())
         dataloader = DeviceDataLoader(unbalanced_dataset, 1)
 
+        print("constructing train dataset with augmentation & balancing")
+
         augmented_image_tensors = []
         augmented_image_target_tensors = []
 
@@ -126,8 +128,9 @@ class WBCDataset:
 
     def get_test_val_datasets(self, take_subset=True):
         image_folder = ImageFolder(root=self.eval_path, transform=self.eval_transforms)
-        # Calculate the number of samples to use for validation
+        print("constructing test and val dataset with augmentation")
 
+        # Calculate the number of samples to use for validation
         num_total_samples = len(image_folder)
 
 

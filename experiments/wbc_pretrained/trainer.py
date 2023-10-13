@@ -4,7 +4,11 @@ from torch import nn, optim
 from tqdm.auto import tqdm
 import config.params as config
 
-#TODO.x
+'''
+TODO.x
+1. ensure that the dataset being passed is the combined dataset one ( i.e change the crop sizes and everything)
+2. ensure that the loss function
+'''
 class PretrainedWBCClassifierTrainer:
     def __init__(self, name, dataset, model, save_dir, device=config.device):
         self.name = name
