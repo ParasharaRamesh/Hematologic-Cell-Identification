@@ -31,6 +31,7 @@ class WBCClassifierTrainer(ClassificationTrainer):
         # store the accuracies
         self.batch_accuracy = batch_correct_predictions / batch_size
         self.train_correct_predictions += batch_correct_predictions
+        self.train_total_batches += labels.size(0)
 
         return loss
 

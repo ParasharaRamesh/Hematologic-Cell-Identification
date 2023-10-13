@@ -26,6 +26,7 @@ class ClassificationTrainer(Trainer):
 
         self.num_classes = num_classes
         self.train_correct_predictions = 0
+        self.train_total_batches = 0
 
     # hooks
     def init_params_from_checkpoint_hook(self, load_from_checkpoint, resume_epoch_num):
@@ -59,7 +60,8 @@ class ClassificationTrainer(Trainer):
     def calculate_avg_train_stats_hook(self, epoch_training_loss):
         # NOTE: no need to calculate avg training accuracy here
         avg_training_loss_for_epoch = epoch_training_loss / len(self.train_loader)
-        avg_training_accuracy = self.train_correct_predictions / len(self.train_loader)
+        avg_training_accuracy = self.train_correct_predictions / self.train_total_batches
+
         epoch_train_stats = {
             "avg_training_loss": avg_training_loss_for_epoch,
             "avg_training_accuracy": avg_training_accuracy
@@ -67,6 +69,8 @@ class ClassificationTrainer(Trainer):
 
         # reset
         self.train_correct_predictions = 0
+        self.train_total_batches = 0
+
         return epoch_train_stats
 
     def store_running_history_hook(self, epoch, avg_train_stats, avg_val_stats):
