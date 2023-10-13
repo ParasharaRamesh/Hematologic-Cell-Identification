@@ -48,18 +48,14 @@ class CamelyonClassifier(nn.Module):
         self.resnet18.fc = nn.Identity()  # Remove the fully connected layer (classifier)
 
         self.resnet_linear_stack = nn.Sequential(
-            nn.Linear(512, 256),  # Adjust input size based on the output of ResNet-18
+            nn.Linear(512, 128),  # Adjust input size based on the output of ResNet-18
             nn.ReLU(),
-            nn.Dropout(0.1),
-            nn.Linear(256, 128),  # Adjust input size based on the output of ResNet-18
-            nn.ReLU(),
-            nn.Dropout(0.1),
             nn.Linear(128, 64),  # Adjust input size based on the output of ResNet-18
             nn.ReLU(),
-            nn.Dropout(0.1),
             nn.Linear(64, 32),  # Adjust input size based on the output of ResNet-18
             nn.ReLU(),
-            nn.Dropout(0.1),
+            nn.Linear(32, 32),  # Adjust input size based on the output of ResNet-18
+            nn.ReLU(),
             nn.Linear(32, 5),
             nn.Sigmoid()
         )
