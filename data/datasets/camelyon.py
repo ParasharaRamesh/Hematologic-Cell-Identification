@@ -27,8 +27,7 @@ class CamelyonDataset:
         self.eval_transforms = [
             transforms.Compose([
                 transforms.Resize((self.resize_to, self.resize_to)),
-                transforms.ToTensor(),
-                transforms.Normalize(*config.cam_stats),
+                transforms.ToTensor()
             ])
         ]
 
@@ -40,15 +39,13 @@ class CamelyonDataset:
                 transforms.Resize((self.resize_to, self.resize_to)),
                 transforms.RandomHorizontalFlip(),
                 transforms.RandomVerticalFlip(),
-                transforms.ToTensor(),
-                transforms.Normalize(*config.cam_stats)
+                transforms.ToTensor()
             ]),
             # transformation with rotation
             transforms.Compose([
                 transforms.Resize((self.resize_to, self.resize_to)),
                 transforms.RandomRotation(degrees=15),
-                transforms.ToTensor(),
-                transforms.Normalize(*config.cam_stats)
+                transforms.ToTensor()
             ]),
             # transformation with rotation & flips
             transforms.Compose([
@@ -56,8 +53,7 @@ class CamelyonDataset:
                 transforms.RandomRotation(degrees=15),
                 transforms.RandomVerticalFlip(),
                 transforms.RandomHorizontalFlip(),
-                transforms.ToTensor(),
-                transforms.Normalize(*config.cam_stats)
+                transforms.ToTensor()
             ])
         ]
 

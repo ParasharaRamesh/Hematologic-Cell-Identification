@@ -20,23 +20,20 @@ class pRCCDataset:
             # basic transformation
             transforms.Compose([
                 transforms.Resize((self.resize_to, self.resize_to)),  # Resize images to a fixed size
-                transforms.ToTensor(),
-                transforms.Normalize(*config.pRCC_stats)
+                transforms.ToTensor()
             ]),
             # transformation with flips
             transforms.Compose([
                 transforms.Resize((self.resize_to, self.resize_to)),
                 transforms.RandomHorizontalFlip(),
                 transforms.RandomVerticalFlip(),
-                transforms.ToTensor(),
-                transforms.Normalize(*config.pRCC_stats)
+                transforms.ToTensor()
             ]),
             # transformation with rotation
             transforms.Compose([
                 transforms.Resize((self.resize_to, self.resize_to)),
                 transforms.RandomRotation(degrees=15),
-                transforms.ToTensor(),
-                transforms.Normalize(*config.pRCC_stats)
+                transforms.ToTensor()
             ]),
             # transformation with rotation & flips
             transforms.Compose([
@@ -44,8 +41,7 @@ class pRCCDataset:
                 transforms.RandomRotation(degrees=15),
                 transforms.RandomVerticalFlip(),
                 transforms.RandomHorizontalFlip(),
-                transforms.ToTensor(),
-                transforms.Normalize(*config.pRCC_stats)
+                transforms.ToTensor()
             ])
         ]
 

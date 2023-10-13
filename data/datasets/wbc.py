@@ -37,8 +37,7 @@ class WBCDataset:
         # transformations
         self.eval_transforms = transforms.Compose([
             transforms.Resize((self.resize_to, self.resize_to)),
-            transforms.ToTensor(),
-            transforms.Normalize(*config.wbc_stats),
+            transforms.ToTensor()
         ])
 
         self.train_transforms = [
@@ -46,24 +45,21 @@ class WBCDataset:
             transforms.Compose([
                 transforms.ToPILImage(),
                 transforms.Resize((self.resize_to, self.resize_to)),
-                transforms.ToTensor(),
-                transforms.Normalize(*config.wbc_stats)
+                transforms.ToTensor()
             ]),
             # horizontal flips
             transforms.Compose([
                 transforms.ToPILImage(),
                 transforms.Resize((self.resize_to, self.resize_to)),
                 transforms.RandomHorizontalFlip(),
-                transforms.ToTensor(),
-                transforms.Normalize(*config.wbc_stats)
+                transforms.ToTensor()
             ]),
             # vertical flips
             transforms.Compose([
                 transforms.ToPILImage(),
                 transforms.Resize((self.resize_to, self.resize_to)),
                 transforms.RandomVerticalFlip(),
-                transforms.ToTensor(),
-                transforms.Normalize(*config.wbc_stats)
+                transforms.ToTensor()
             ]),
             # transformation with flips
             transforms.Compose([
@@ -71,16 +67,14 @@ class WBCDataset:
                 transforms.Resize((self.resize_to, self.resize_to)),
                 transforms.RandomHorizontalFlip(),
                 transforms.RandomVerticalFlip(),
-                transforms.ToTensor(),
-                transforms.Normalize(*config.wbc_stats)
+                transforms.ToTensor()
             ]),
             # transformation with rotation
             transforms.Compose([
                 transforms.ToPILImage(),
                 transforms.Resize((self.resize_to, self.resize_to)),
                 transforms.RandomRotation(degrees=10),
-                transforms.ToTensor(),
-                transforms.Normalize(*config.wbc_stats)
+                transforms.ToTensor()
             ]),
             # transformation with rotation & flips
             transforms.Compose([
@@ -89,8 +83,7 @@ class WBCDataset:
                 transforms.RandomRotation(degrees=10),
                 transforms.RandomVerticalFlip(),
                 transforms.RandomHorizontalFlip(),
-                transforms.ToTensor(),
-                transforms.Normalize(*config.wbc_stats)
+                transforms.ToTensor()
             ])
         ]
 
