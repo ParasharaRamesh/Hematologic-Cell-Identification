@@ -21,7 +21,7 @@ class CamelyonClassifier(nn.Module):
         self.res3 = self.conv_and_batch_norm_block(512, 512)
         self.res4 = self.conv_and_batch_norm_block(512, 512)
 
-        self.classifier = nn.Sequential(
+        self.linear_stack = nn.Sequential(
             nn.MaxPool2d(4),
             nn.MaxPool2d(4),
             nn.Flatten(),
@@ -29,10 +29,12 @@ class CamelyonClassifier(nn.Module):
             nn.ReLU(),
             nn.Linear(256, 32),
             nn.ReLU(),
-            # nn.Dropout(0.1),
-            nn.Linear(32, 5),
+            nn.Dropout(0.1),
+            nn.Linear(32, 5)
+        )
+
+        self.predictor = nn.Sequential(
             nn.ReLU(),
-            # nn.Dropout(0.1),
             nn.Linear(5, self.num_classes)
         )
 
@@ -50,19 +52,22 @@ class CamelyonClassifier(nn.Module):
         out = self.conv1(x)  # shape (b,64,256,256)
         out1 = self.conv2(out)  # shape (b,128,128,128)
         out = self.res1(out1) + out1  # skip connections, shape (b,128,128,128)
+
         out = out1 + self.res2(out) + out  # multi skip connections, shape (b,128,128,128)
         out = self.conv3(out)  # shape is (b,256,64,64)
         out2 = self.conv4(out)  # shape is (b,512,32,32)
+
         out = self.res3(out2) + out2  # skip connections, shape is (b,512,32,32)
         out = out2 + self.res4(out) + out  # multi skip connections, shape is (b,512,32,32)
-        out = self.classifier(out)
-        return out
 
+        linear_stack = self.linear_stack(out)
+        predictor = self.predictor(out, linear_stack)
+        return linear_stack, predictor
 
-if __name__ == '__main__':
-    # Example usage:
-    cam = CamelyonClassifier().to(config.device)
-    summary(cam, input_size=(3, 256, 256), device=config.device, batch_dim=0,
-            col_names=["input_size", "output_size", "num_params", "kernel_size", "mult_adds"], verbose=1)
-    # input_tensor = torch.randn(1, 3, 256, 256).to(config.device)
-    # output = cam(input_tensor)
+# if __name__ == '__main__':
+# Example usage:
+# cam = CamelyonClassifier().to(config.device)
+# summary(cam, input_size=(3, 256, 256), device=config.device, batch_dim=0,
+#         col_names=["input_size", "output_size", "num_params", "kernel_size", "mult_adds"], verbose=1)
+# input_tensor = torch.randn(1, 3, 256, 256).to(config.device)
+# output = cam(input_tensor)
