@@ -18,9 +18,9 @@ class WBCClassifierTrainer(ClassificationTrainer):
     # hooks
     def calculate_loss_hook(self, data):
         images, labels = data
-        labels = self.one_hot(labels)
+        one_hot_labels = self.one_hot(labels)
         output_logits = self.model(images)
-        loss = self.loss_criterion(output_logits, labels)
+        loss = self.loss_criterion(output_logits, one_hot_labels)
 
         # compute the batch stats right here and save it
         output_probs = nn.Softmax(dim=1)(output_logits)
@@ -48,11 +48,11 @@ class WBCClassifierTrainer(ClassificationTrainer):
         with torch.no_grad():
             for val_batch_idx, val_data in enumerate(self.val_loader):
                 val_images, val_labels = val_data
-                val_labels = self.one_hot(val_labels)
+                one_hot_val_labels = self.one_hot(val_labels)
 
                 val_logits = self.model(val_images)
 
-                val_loss += self.loss_criterion(val_logits, val_labels).item()
+                val_loss += self.loss_criterion(val_logits, one_hot_val_labels).item()
 
                 # Compute validation accuracy for this batch
                 val_probs = nn.Softmax(dim=1)(val_logits)
@@ -82,11 +82,11 @@ class WBCClassifierTrainer(ClassificationTrainer):
         with torch.no_grad():
             for test_batch_idx, test_data in enumerate(self.test_loader):
                 test_images, test_labels = test_data
-                test_labels = self.one_hot(test_labels)
+                one_hot_test_labels = self.one_hot(test_labels)
 
                 test_logits = self.model(test_images)
 
-                test_loss += self.loss_criterion(test_logits, test_labels).item()
+                test_loss += self.loss_criterion(test_logits, one_hot_test_labels).item()
 
                 # Compute validation accuracy for this batch
                 test_probs = nn.Softmax(dim=1)(test_logits)
