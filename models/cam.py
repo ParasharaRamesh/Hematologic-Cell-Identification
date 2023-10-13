@@ -23,10 +23,12 @@ class CamelyonClassifier(nn.Module):
 
         self.linear_stack = nn.Sequential(
             nn.MaxPool2d(4),
-            nn.MaxPool2d(4),
             nn.Flatten(),
+            nn.Linear(32768, 2048),
+            nn.ReLU(),
             nn.Linear(2048, 256),
             nn.ReLU(),
+            nn.Dropout(0.1),
             nn.Linear(256, 32),
             nn.ReLU(),
             nn.Dropout(0.1),
@@ -64,10 +66,8 @@ class CamelyonClassifier(nn.Module):
         predictor = self.predictor(linear_stack)
         return linear_stack, predictor
 
-# if __name__ == '__main__':
-# Example usage:
-# cam = CamelyonClassifier().to(config.device)
-# summary(cam, input_size=(3, 256, 256), device=config.device, batch_dim=0,
-#         col_names=["input_size", "output_size", "num_params", "kernel_size", "mult_adds"], verbose=1)
-# input_tensor = torch.randn(1, 3, 256, 256).to(config.device)
-# output = cam(input_tensor)
+if __name__ == '__main__':
+    cam = CamelyonClassifier().to(config.device)
+    input_tensor = torch.randn(1, 3, 256, 256).to(config.device)
+    output = cam(input_tensor)
+    summary(cam, input_size=(3, 256, 256), device=config.device, batch_dim=0,col_names=["input_size", "output_size", "num_params", "kernel_size", "mult_adds"], verbose=1)
