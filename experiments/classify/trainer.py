@@ -9,9 +9,6 @@ from experiments.base.trainer import Trainer
 import matplotlib.pyplot as plt
 import torch.nn.functional as F
 
-'''
-Can reuse this for both Camelyon and WBC classification 
-'''
 class ClassificationTrainer(Trainer):
     def __init__(self, name, dataset, model, save_dir, num_classes):
         super().__init__(name, dataset, model, save_dir)

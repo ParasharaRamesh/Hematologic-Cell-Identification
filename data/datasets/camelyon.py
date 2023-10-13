@@ -10,7 +10,6 @@ This dataset is balanced so no need to do any fancy things
 Here all there are only 2 classes normal:0 and tumor:1, we need to one hot encode it as well
 
 '''
-
 class CamelyonDataset:
     def __init__(self, path, batch_size=config.cam_batch_size, resize_to=config.cam_img_resize_target):
         # constants
