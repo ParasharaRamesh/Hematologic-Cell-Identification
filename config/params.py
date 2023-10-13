@@ -21,7 +21,8 @@ pRCC_img_resize_target = 512  # from 2000 -> 512 ( Too big to fit on machine!)
 pRCC_latent_dim = 2048
 
 cam_batch_size = 16
-cam_img_resize_target = 256 # from 384 -> 256
+# cam_img_resize_target = 256 # from 384 -> 256
+cam_img_resize_target = 224 # as we are passing it into resnet
 
 wbc_batch_size = 16
 wbc_img_resize_target = 512 # from 575 -> 512
