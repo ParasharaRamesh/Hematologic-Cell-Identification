@@ -48,11 +48,20 @@ class CamelyonClassifier(nn.Module):
         self.resnet18.fc = nn.Identity()  # Remove the fully connected layer (classifier)
 
         self.resnet_linear_stack = nn.Sequential(
-            nn.Linear(512, 32),  # Adjust input size based on the output of ResNet-18
+            nn.Linear(512, 256),  # Adjust input size based on the output of ResNet-18
+            nn.ReLU(),
+            nn.Dropout(0.1),
+            nn.Linear(256, 128),  # Adjust input size based on the output of ResNet-18
+            nn.ReLU(),
+            nn.Dropout(0.1),
+            nn.Linear(128, 64),  # Adjust input size based on the output of ResNet-18
+            nn.ReLU(),
+            nn.Dropout(0.1),
+            nn.Linear(64, 32),  # Adjust input size based on the output of ResNet-18
             nn.ReLU(),
             nn.Dropout(0.1),
             nn.Linear(32, 5),
-            nn.ReLU()
+            nn.Sigmoid()
         )
 
         self.predictor = nn.Sequential(
@@ -101,9 +110,9 @@ class CamelyonClassifier(nn.Module):
         predictor = self.predictor(linear_stack)
         return linear_stack, predictor
 
-# if __name__ == '__main__':
-    # cam = CamelyonClassifier().to(config.device)
+if __name__ == '__main__':
+    cam = CamelyonClassifier().to(config.device)
     # input_tensor = torch.randn(1, 3, 256, 256).to(config.device)
     # input_tensor = torch.randn(1, 3, 224, 224).to(config.device)
     # output = cam(input_tensor)
-    # summary(cam, input_size=(3, 224, 224), device=config.device, batch_dim=0,col_names=["input_size", "output_size", "num_params", "kernel_size", "mult_adds"], verbose=1)
+    summary(cam, input_size=(3, 224, 224), device=config.device, batch_dim=0,col_names=["input_size", "output_size", "num_params", "kernel_size", "mult_adds"], verbose=1)
