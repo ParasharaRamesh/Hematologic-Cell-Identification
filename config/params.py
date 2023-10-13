@@ -18,6 +18,7 @@ grad_clip = 0.1
 
 pRCC_batch_size = 16
 pRCC_img_resize_target = 512  # from 2000 -> 512 ( Too big to fit on machine!)
+pRCC_latent_dim = 2048
 
 cam_batch_size = 16
 cam_img_resize_target = 256 # from 384 -> 256

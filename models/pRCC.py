@@ -10,8 +10,10 @@ TODO.
 3. do more batch normalization
 
 '''
+
+
 class pRCCUnetAutoencoder(nn.Module):
-    def __init__(self, latent_dim_size=2048):
+    def __init__(self, latent_dim_size=config.pRCC_latent_dim):
         super().__init__()
 
         # constants
@@ -55,20 +57,20 @@ class pRCCUnetAutoencoder(nn.Module):
             nn.ReLU(inplace=True),
             nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
             nn.BatchNorm2d(out_channels),  # BatchNorm added
-            nn.AvgPool2d(kernel_size=2, stride=2),  # Always include avg pool
+            nn.MaxPool2d(kernel_size=2, stride=2)
         )
 
     def decoding_step(self, x, in_channels, out_channels, ct_padding=0, conv_padding=1):
-        #need to explicitly move the convTranspose to correct device!
+        # need to explicitly move the convTranspose to correct device!
         x = nn.ConvTranspose2d(in_channels=in_channels, out_channels=out_channels, kernel_size=2, stride=2,
                                padding=ct_padding).to(config.device)(x)  # Upsample
-        x = nn.Conv2d(in_channels=out_channels, out_channels=out_channels, kernel_size=3, padding=conv_padding)\
+        x = nn.Conv2d(in_channels=out_channels, out_channels=out_channels, kernel_size=3, padding=conv_padding) \
             .to(config.device)(x)  # Convolution
         return x
 
     def linear_latent(self, x):
         # Apply pooling to reduce dimensions
-        x = nn.AvgPool2d(kernel_size=2).to(config.device)(x)  # Shape: (batchsize, 256, 16, 16)
+        x = nn.MaxPool2d(kernel_size=2).to(config.device)(x)  # Shape: (batchsize, 256, 16, 16)
         x = nn.MaxPool2d(kernel_size=2).to(config.device)(x)  # Shape: (batchsize, 256, 8, 8)
         x = nn.AdaptiveMaxPool2d((4, 4)).to(config.device)(x)  # Shape: (batchsize, 256, 4, 4)
 
