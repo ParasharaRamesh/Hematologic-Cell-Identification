@@ -61,7 +61,7 @@ class CamelyonClassifier(nn.Module):
         out = out2 + self.res4(out) + out  # multi skip connections, shape is (b,512,32,32)
 
         linear_stack = self.linear_stack(out)
-        predictor = self.predictor(out, linear_stack)
+        predictor = self.predictor(linear_stack)
         return linear_stack, predictor
 
 # if __name__ == '__main__':
