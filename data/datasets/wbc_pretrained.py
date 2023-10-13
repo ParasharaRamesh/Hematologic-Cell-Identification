@@ -103,7 +103,7 @@ class PretrainedWBCDataset:
         unbalanced_dataset = ImageFolder(root=self.train_path, transform=transforms.ToTensor())
         dataloader = DeviceDataLoader(unbalanced_dataset, 1)
         print("constructing train dataset with augmentation & balancing")
-        return self.construct_dataset(dataloader, False)
+        return self.construct_dataset(dataloader)
 
     def get_test_val_datasets(self, take_subset=True):
         image_folder = ImageFolder(root=self.eval_path, transform=transforms.ToTensor())
@@ -129,7 +129,7 @@ class PretrainedWBCDataset:
         val_dataloader = DeviceDataLoader(validation_dataset, 1)
 
         print("constructing test & val dataset with augmentation")
-        return self.construct_dataset(test_dataloader, True), self.construct_dataset(val_dataloader, True)
+        return self.construct_dataset(test_dataloader), self.construct_dataset(val_dataloader)
 
     def find_num_of_transforms_needed_for_balancing(self):
         unbalanced_train_dataset = ImageFolder(root=self.train_path, transform=transforms.ToTensor())
@@ -150,7 +150,7 @@ class PretrainedWBCDataset:
             DeviceDataLoader(self.test_dataset, self.batch_size), \
             DeviceDataLoader(self.validation_dataset, self.batch_size)
 
-    def construct_dataset(self, dataloader, is_eval=False):
+    def construct_dataset(self, dataloader):
 
         augmented_pRCC_image_tensors = []
         augmented_cam_image_tensors = []
