@@ -123,7 +123,7 @@ class ClassificationTrainer(Trainer):
     # util code
     def one_hot(self, labels):
         # Create an empty one-hot tensor
-        one_hot_tensor = torch.zeros((labels.size(0), self.num_classes), dtype=torch.float32)
+        one_hot_tensor = torch.zeros((labels.size(0), self.num_classes), dtype=torch.float32).to(config.device)
 
         # Use scatter to fill in the one-hot tensor
         one_hot_tensor.scatter_(1, labels.view(-1, 1), 1)

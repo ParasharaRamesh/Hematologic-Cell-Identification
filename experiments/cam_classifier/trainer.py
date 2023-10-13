@@ -8,7 +8,6 @@ from data.move.device_data_loader import DeviceDataLoader
 from experiments.base.trainer import Trainer
 import matplotlib.pyplot as plt
 import torch.nn.functional as F
-
 from experiments.classify.trainer import ClassificationTrainer
 
 
