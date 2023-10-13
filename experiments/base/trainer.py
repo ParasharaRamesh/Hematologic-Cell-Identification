@@ -12,7 +12,7 @@ from tqdm.auto import tqdm
 import config.params as config
 
 
-class Module:
+class Trainer:
     def __init__(self, name, dataset, model, save_dir, device=config.device):
         '''
 

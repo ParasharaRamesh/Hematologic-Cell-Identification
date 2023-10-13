@@ -5,14 +5,14 @@ from torch.utils.data import Subset
 import numpy as np
 import config.params as config
 from data.move.device_data_loader import DeviceDataLoader
-from experiments.base.module import Module
+from experiments.base.trainer import Trainer
 import matplotlib.pyplot as plt
 import torch.nn.functional as F
 
 '''
 Can reuse this for both Camelyon and WBC classification 
 '''
-class ClassificationModule(Module):
+class ClassificationTrainer(Trainer):
     def __init__(self, name, dataset, model, save_dir, num_classes):
         super().__init__(name, dataset, model, save_dir)
 

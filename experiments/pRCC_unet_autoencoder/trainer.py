@@ -4,12 +4,12 @@ from torch.utils.data import Subset
 import numpy as np
 import config.params as config
 from data.move.device_data_loader import DeviceDataLoader
-from experiments.base.module import Module
+from experiments.base.trainer import Trainer
 from loss.loss import SSIMLoss
 import matplotlib.pyplot as plt
 
 
-class pRCCModule(Module):
+class pRCCTrainer(Trainer):
     def __init__(self, name, dataset, model, save_dir):
         super().__init__(name, dataset, model, save_dir)
 

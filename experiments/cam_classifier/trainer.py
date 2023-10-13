@@ -5,22 +5,22 @@ from torch.utils.data import Subset
 import numpy as np
 import config.params as config
 from data.move.device_data_loader import DeviceDataLoader
-from experiments.base.module import Module
+from experiments.base.trainer import Trainer
 import matplotlib.pyplot as plt
 import torch.nn.functional as F
 
-from experiments.classify.module import ClassificationModule
+from experiments.classify.trainer import ClassificationTrainer
 
-#TODO.x need to rewrite this
-class WBCClassifier(ClassificationModule):
-    def __init__(self, name, dataset, model, save_dir, num_classes=5):
+
+class CamClassifierTrainer(ClassificationTrainer):
+    def __init__(self, name, dataset, model, save_dir, num_classes=2):
         super().__init__(name, dataset, model, save_dir, num_classes)
 
     # hooks
     def calculate_loss_hook(self, data):
         images, labels = data
         labels = self.one_hot(labels)
-        output_logits = self.model(images)
+        _, output_logits = self.model(images)
         loss = self.loss_criterion(output_logits, labels)
 
         # compute the batch stats right here and save it
@@ -51,7 +51,7 @@ class WBCClassifier(ClassificationModule):
                 val_images, val_labels = val_data
                 val_labels = self.one_hot(val_labels)
 
-                val_logits = self.model(val_images)
+                _, val_logits = self.model(val_images)
 
                 val_loss += self.loss_criterion(val_logits, val_labels).item()
 
@@ -85,7 +85,7 @@ class WBCClassifier(ClassificationModule):
                 test_images, test_labels = test_data
                 test_labels = self.one_hot(test_labels)
 
-                test_logits = self.model(test_images)
+                _, test_logits = self.model(test_images)
 
                 test_loss += self.loss_criterion(test_logits, test_labels).item()
 
@@ -105,7 +105,6 @@ class WBCClassifier(ClassificationModule):
             "test_loss": avg_test_loss,
             "test_accuracy": avg_test_accuracy
         }
-
 
 
 if __name__ == '__main__':

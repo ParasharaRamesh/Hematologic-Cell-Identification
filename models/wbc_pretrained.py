@@ -6,7 +6,7 @@ from models.pRCC import pRCCUnetAutoencoder
 from models.wbc import WBCClassifier
 
 
-class CombinedModel(nn.Module):
+class PretrainedWBCClassifier(nn.Module):
     def __init__(self,
                  pRCC_model,
                  Cam16_model,
@@ -15,7 +15,7 @@ class CombinedModel(nn.Module):
                  cam_weights_path=None,
                  wbc_weights_path=None
                  ):
-        super(CombinedModel, self).__init()
+        super().__init__()
 
         if pRCC_weights_path:
             # Load the best weights for the pRCC model and make it non-trainable

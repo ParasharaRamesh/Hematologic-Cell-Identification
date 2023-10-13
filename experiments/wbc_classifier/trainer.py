@@ -5,13 +5,13 @@ from torch.utils.data import Subset
 import numpy as np
 import config.params as config
 from data.move.device_data_loader import DeviceDataLoader
-from experiments.base.module import Module
+from experiments.base.trainer import Trainer
 import matplotlib.pyplot as plt
 import torch.nn.functional as F
 
-from experiments.classify.module import ClassificationModule
+from experiments.classify.trainer import ClassificationTrainer
 
-class WBCClassifier(ClassificationModule):
+class WBCClassifierTrainer(ClassificationTrainer):
     def __init__(self, name, dataset, model, save_dir, num_classes=5):
         super().__init__(name, dataset, model, save_dir, num_classes)
 
