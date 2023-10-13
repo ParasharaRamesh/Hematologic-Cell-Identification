@@ -3,6 +3,8 @@ from torch.utils.data import ConcatDataset
 import os
 from torchvision.datasets import ImageFolder
 from torchvision import transforms
+
+from data.debug.debug import LocalDebug
 from data.move.device_data_loader import DeviceDataLoader
 
 '''
@@ -23,16 +25,14 @@ class CamelyonDataset:
         self.val_path = os.path.join(self.path, "val", "data")
 
         # transformations
-        self.eval_transforms = [
-            transforms.Compose([
-                transforms.Resize((self.resize_to, self.resize_to)),
-                transforms.ToTensor()
-            ])
-        ]
+        self.eval_transforms = transforms.Compose([
+            transforms.Resize((self.resize_to, self.resize_to)),
+            transforms.ToTensor()
+        ])
 
         self.train_transforms = [
             # basic transformation
-            *self.eval_transforms,
+            self.eval_transforms,
             # transformation with flips
             transforms.Compose([
                 transforms.Resize((self.resize_to, self.resize_to)),
@@ -75,7 +75,7 @@ class CamelyonDataset:
         image_folder = ImageFolder(root=self.train_path, transform=transformation)
 
         # Uncomment for local testing
-        # image_folder = create_mini_dataset(image_folder, 5)
+        image_folder = LocalDebug.create_mini_dataset(image_folder, 5)
 
         return image_folder
 
@@ -83,7 +83,7 @@ class CamelyonDataset:
         image_folder = ImageFolder(root=self.test_path, transform=self.eval_transforms)
 
         # Uncomment for local testing
-        # image_folder = create_mini_dataset(image_folder, 5)
+        image_folder = LocalDebug.create_mini_dataset(image_folder, 5)
 
         return image_folder
 
@@ -91,7 +91,7 @@ class CamelyonDataset:
         image_folder = ImageFolder(root=self.val_path, transform=self.eval_transforms)
 
         # Uncomment for local testing
-        # image_folder = create_mini_dataset(image_folder, 5)
+        image_folder = LocalDebug.create_mini_dataset(image_folder, 5)
 
         return image_folder
 
