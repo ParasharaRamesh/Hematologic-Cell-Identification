@@ -18,9 +18,6 @@ class pRCCUnetAutoencoder(nn.Module):
         self.encode_conv_4 = self.encoding_step(128, 256)
         self.encode_conv_5 = self.encoding_step(256, 256)  # Reduced to 256 channels
 
-        # Linear layers for latent encoding
-        self.avg_pool = nn.AvgPool2d(kernel_size=3, stride=1)  # Reduce dimensions
-
     def forward(self, x):
         # Encoding
         encode_5 = self.encode_conv_1(x)  # Shape: (batchsize, 32, 512, 512)
@@ -45,11 +42,9 @@ class pRCCUnetAutoencoder(nn.Module):
     def encoding_step(self, in_channels, out_channels):
         return nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
-            nn.BatchNorm2d(out_channels),  # BatchNorm added
             nn.ReLU(),
             nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
-            nn.BatchNorm2d(out_channels),  # BatchNorm added
-            nn.Sigmoid(),
+            nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2)
         )
 
@@ -57,19 +52,18 @@ class pRCCUnetAutoencoder(nn.Module):
         # need to explicitly move the convTranspose to correct device!
         x = nn.ConvTranspose2d(in_channels=in_channels, out_channels=out_channels, kernel_size=2, stride=2,
                                padding=ct_padding).to(config.device)(x)  # Upsample
-        x = nn.Conv2d(in_channels=out_channels, out_channels=out_channels, kernel_size=3, padding=conv_padding) \
-            .to(config.device)(x)  # Convolution
+        x = nn.ReLU().to(config.device)(x)
+        x = nn.Conv2d(in_channels=out_channels, out_channels=out_channels, kernel_size=3, padding=conv_padding).to(
+            config.device)(x)  # Convolution
         return x
 
     def linear_latent(self, x):
         # Apply convolution and max-pooling to reduce dimensions
         x = nn.Conv2d(256, 128, kernel_size=3, padding=1).to(config.device)(x)  # Shape: (batchsize, 128, 32, 32)
-        x = nn.ReLU(inplace=True).to(config.device)(x)
         x = nn.BatchNorm2d(128).to(config.device)(x)
         x = nn.MaxPool2d(kernel_size=2).to(config.device)(x)  # Shape: (batchsize, 128, 16, 16)
 
         x = nn.Conv2d(128, 64, kernel_size=3, padding=1).to(config.device)(x)  # Shape: (batchsize, 64, 16, 16)
-        x = nn.Sigmoid().to(config.device)(x)
         x = nn.BatchNorm2d(64).to(config.device)(x)
         x = nn.MaxPool2d(kernel_size=2).to(config.device)(x)  # Shape: (batchsize, 64, 8, 8)
 
@@ -77,15 +71,18 @@ class pRCCUnetAutoencoder(nn.Module):
         x = nn.Flatten().to(config.device)(x)  # Shape: (batchsize, 32 * 4 * 4)
 
         # Apply linear layers to further reduce dimensions
-        x = nn.Linear(1024, 2048).to(config.device)(x)  # Shape: (batchsize, 1024)
-        x = nn.ReLU(inplace=True).to(config.device)(x)
-        x = nn.Linear(2048, self.latent_dim_size).to(config.device)(x)  # Shape: (batchsize, 2048)
+        x = nn.Linear(1024, 1024).to(config.device)(x)  # Shape: (batchsize, 1024)
+        x = nn.ReLU().to(config.device)(x)
+        x = nn.Linear(1024, self.latent_dim_size).to(config.device)(x)  # Shape: (batchsize, 1024)
+        x = nn.Sigmoid().to(config.device)(x)
 
         return x
+
 
 if __name__ == '__main__':
     # Example usage:
     autoencoder = pRCCUnetAutoencoder().to(config.device)
-    summary(autoencoder, input_size=(3, 512, 512), device=config.device, batch_dim=0, col_names=["input_size", "output_size", "num_params", "kernel_size", "mult_adds"], verbose=1)
+    summary(autoencoder, input_size=(3, 512, 512), device=config.device, batch_dim=0,
+            col_names=["input_size", "output_size", "num_params", "kernel_size", "mult_adds"], verbose=1)
     # input_tensor = torch.randn(1, 3, 512, 512)
     # latent, output = autoencoder(input_tensor)

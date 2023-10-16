@@ -112,7 +112,7 @@ class WBCDatasetBalancer:
             os.makedirs(target_class_path, exist_ok=True)
 
         print("constructing train dataset with augmentation & balancing")
-        for data in tqdm(dataloader):
+        for i, data in enumerate(tqdm(dataloader)):
             img_tensor, target_tensor = data
             img_tensor = img_tensor.squeeze()
 
@@ -122,13 +122,14 @@ class WBCDatasetBalancer:
 
             # add the remaining transforms to the list
             num_of_transformations = self.num_transforms_for_target[target_class_idx]
-            for i in range(num_of_transformations):
+
+            for j in range(num_of_transformations):
                 random_transform_idx = random.choice(range(len(self.train_transforms)))
                 random_transform = self.train_transforms[random_transform_idx]
                 random_augmentation_img_tensor = random_transform(img_tensor)
                 random_augmentation_img = self.tensor_to_img_transform(random_augmentation_img_tensor)
 
-                file_path = os.path.join(target_class_path, f"{i}_transform_{random_transform_idx}.jpg")
+                file_path = os.path.join(target_class_path, f"{i}_transform_{j}_rti_{random_transform_idx}.jpg")
                 random_augmentation_img.save(file_path)
 
 
@@ -143,15 +144,15 @@ class WBCDatasetBalancer:
 
 
 if __name__ == '__main__':
-    train_path_1 = os.path.abspath("../../datasets/modified/WBC_1")
-    out_path_1 = os.path.abspath("../../datasets/modified/WBC_1_balanced")
-    wbc_1 = WBCDatasetBalancer(train_path_1, out_path_1)
-    print("WBC 1 done")
+    # train_path_1 = os.path.abspath("../../datasets/modified/WBC_1")
+    # out_path_1 = os.path.abspath("../../datasets/modified/WBC_1_balanced")
+    # wbc_1 = WBCDatasetBalancer(train_path_1, out_path_1)
+    # print("WBC 1 done")
 
-    train_path_10 = os.path.abspath("../../datasets/modified/WBC_10")
-    out_path_10 = os.path.abspath("../../datasets/modified/WBC_10_balanced")
-    wbc_10 = WBCDatasetBalancer(train_path_10, out_path_10)
-    print("WBC 10 Done")
+    # train_path_10 = os.path.abspath("../../datasets/modified/WBC_10")
+    # out_path_10 = os.path.abspath("../../datasets/modified/WBC_10_balanced")
+    # wbc_10 = WBCDatasetBalancer(train_path_10, out_path_10)
+    # print("WBC 10 Done")
 
     train_path_50 = os.path.abspath("../../datasets/modified/WBC_50")
     out_path_50 = os.path.abspath("../../datasets/modified/WBC_50_balanced")
