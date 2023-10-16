@@ -2,6 +2,8 @@ import os
 import torch
 from torch.utils.data import Subset
 import numpy as np
+from torchvision.transforms import transforms
+
 import config.params as config
 from data.move.device_data_loader import DeviceDataLoader
 from experiments.base.trainer import Trainer
@@ -24,6 +26,13 @@ class pRCCTrainer(Trainer):
         self.epoch_numbers = []
         self.training_losses = []
         self.validation_losses = []
+
+        # Loaders to show reconstruction
+        self.test_loader_sampler = DeviceDataLoader(self.test_loader.dataset, batch_size=1)
+        self.val_loader_sampler = DeviceDataLoader(self.val_loader.dataset, batch_size=1)
+
+        self.tensor_to_img_transform = transforms.ToPILImage()
+
 
     # hooks
     def init_params_from_checkpoint_hook(self, load_from_checkpoint, resume_epoch_num):
@@ -81,7 +90,7 @@ class pRCCTrainer(Trainer):
         avg_val_loss_for_epoch = val_loss / len(self.val_loader)
 
         # show some sample predictions
-        self.show_sample_reconstructions(self.val_loader)
+        self.show_sample_reconstructions(self.val_loader_sampler)
 
         return {
             "avg_val_loss_for_epoch": avg_val_loss_for_epoch
@@ -144,27 +153,21 @@ class pRCCTrainer(Trainer):
         avg_test_loss = test_loss / len(self.test_loader)
 
         # show some sample predictions
-        self.show_sample_reconstructions(self.test_loader)
+        self.show_sample_reconstructions(self.test_loader_sampler)
 
         return {
             "avg_test_loss": avg_test_loss
         }
 
     # util code
-    def show_sample_reconstructions(self, dataloader, num_samples=1):
+    def show_sample_reconstructions(self, dataloader):
         self.model.eval()
 
-        # Get random samples
-        sample_indices = torch.randperm(len(dataloader.dataset))[:num_samples]
-        subset_dataset = Subset(dataloader.dataset, sample_indices)
-
-        dataloader = DeviceDataLoader(subset_dataset, self.batch_size)
-
         # Create a subplot grid
-        fig, axes = plt.subplots(num_samples, 2, figsize=(9, 9))
+        fig, axes = plt.subplots(1, 2, figsize=(9, 9))
 
         with torch.no_grad():
-            for i, val_data in enumerate(dataloader):
+            for val_data in dataloader:
                 sample_image, _ = val_data
 
                 # Forward pass through the model
@@ -174,9 +177,9 @@ class pRCCTrainer(Trainer):
                 sample_image = sample_image.squeeze().to("cpu")
                 predicted_image = predicted_image.squeeze().to("cpu")
 
-                # keep it ready for showcasing in matplotlib
-                predicted_image = predicted_image.permute(1, 2, 0).numpy().astype(np.uint8)
-                sample_image = sample_image.permute(1, 2, 0).numpy().astype(np.uint8)
+                #convert to PIL Image
+                sample_image = self.tensor_to_img_transform(sample_image)
+                predicted_image = self.tensor_to_img_transform(predicted_image)
 
                 axes[0].imshow(sample_image)
                 axes[0].set_title(f"Sample Original Image", color='green')
@@ -185,6 +188,9 @@ class pRCCTrainer(Trainer):
                 axes[1].imshow(predicted_image)
                 axes[1].set_title(f"Sample Reconstructed Image", color='red')
                 axes[1].axis('off')
+
+                #show only one image
+                break
 
         plt.tight_layout()
         plt.show()

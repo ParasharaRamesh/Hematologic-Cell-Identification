@@ -12,6 +12,13 @@ from collections import Counter
 import random
 from tqdm import tqdm
 
+'''
+TODO.
+
+
+change it similar to how wbc is changed
+
+'''
 
 # This dataset is not balanced therefore we need to apply transformations appropriately
 class PretrainedWBCDataset:

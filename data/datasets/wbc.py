@@ -12,6 +12,14 @@ from collections import Counter
 import random
 from tqdm import tqdm
 
+'''
+TODO.x
+
+1. move this to a new place for creating the wbc balancing ( call that module balancing)..
+2. in wbc and wbc_pretrained dont have any balancing stuff... just load from path
+
+'''
+
 
 # This dataset is not balanced therefore we need to apply transformations appropriately
 class WBCDataset:
@@ -166,6 +174,7 @@ class WBCDataset:
 if __name__ == '__main__':
     train_path = os.path.abspath("../../datasets/modified/WBC_1")
     eval_path = os.path.abspath("../../datasets/modified/WBC_test")
+    # out_path = os.path.abspath("../../datasets/modified/WBC_1")
     wbc = WBCDataset(train_path, eval_path)
     a, b, c = wbc.get_dataloaders()
     print("Done")

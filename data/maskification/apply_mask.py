@@ -15,8 +15,6 @@ NOTE: the Cam dataset needs mask only for the tumour part and for WBC you do hav
 Deleted the masks in the cam16/data/mask/normal as it was all black anyway
 
 '''
-
-
 class Maskify:
     def __init__(self, data_path, mask_path, masked_data_path):
         self.data_path = data_path
@@ -70,8 +68,6 @@ class Maskify:
             else:
                 print(f"{data_file_path} not found")
         print("Finished applying masks and saving!")
-
-
 
 
 if __name__ == '__main__':
