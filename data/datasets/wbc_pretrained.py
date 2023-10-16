@@ -12,13 +12,6 @@ from collections import Counter
 import random
 from tqdm import tqdm
 
-'''
-TODO.
-
-
-change it similar to how wbc is changed
-
-'''
 
 # This dataset is not balanced therefore we need to apply transformations appropriately
 class PretrainedWBCDataset:
@@ -49,15 +42,12 @@ class PretrainedWBCDataset:
         self.eval_path = os.path.join(self.eval_path, "val", "data")
 
         # transformations
-        self.wbc_resize_transform = self.resize_transformations(self.wbc_resize_to)
+        self.wbc_resize_transform = transforms.Compose([
+            transforms.Resize((self.wbc_resize_to, self.wbc_resize_to)),
+            transforms.ToTensor()
+        ])
         self.cam_resize_transform = self.resize_transformations(self.cam_resize_to)
         self.pRCC_resize_transform = self.resize_transformations(self.pRCC_resize_to)
-
-        # get corresponding train transformatins
-        self.train_transforms = self.get_transformations()
-
-        # self.num_transforms_for_target will contain the number of times each target needs to be transformed
-        self.find_num_of_transforms_needed_for_balancing()
 
         # create dataset
         self.test_dataset, self.validation_dataset = self.get_test_val_datasets()
@@ -68,52 +58,17 @@ class PretrainedWBCDataset:
         return transforms.Compose([
             transforms.ToPILImage(),
             transforms.Resize((resize_to, resize_to)),
+            transforms.ToTensor()
         ])
 
-    def get_transformations(self):
-        return [
-            # normal
-            transforms.Compose([
-                transforms.ToTensor()
-            ]),
-            # horizontal flips
-            transforms.Compose([
-                transforms.RandomHorizontalFlip(),
-                transforms.ToTensor()
-            ]),
-            # vertical flips
-            transforms.Compose([
-                transforms.RandomVerticalFlip(),
-                transforms.ToTensor()
-            ]),
-            # transformation with flips
-            transforms.Compose([
-                transforms.RandomHorizontalFlip(),
-                transforms.RandomVerticalFlip(),
-                transforms.ToTensor()
-            ]),
-            # transformation with rotation
-            transforms.Compose([
-                transforms.RandomRotation(degrees=10),
-                transforms.ToTensor()
-            ]),
-            # transformation with rotation & flips
-            transforms.Compose([
-                transforms.RandomRotation(degrees=10),
-                transforms.RandomVerticalFlip(),
-                transforms.RandomHorizontalFlip(),
-                transforms.ToTensor()
-            ])
-        ]
-
     def get_train_dataset(self):
-        unbalanced_dataset = ImageFolder(root=self.train_path, transform=transforms.ToTensor())
+        unbalanced_dataset = ImageFolder(root=self.train_path, transform=self.wbc_resize_transform)
         dataloader = DeviceDataLoader(unbalanced_dataset, 1)
         print("constructing train dataset with augmentation & balancing")
         return self.construct_dataset(dataloader)
 
     def get_test_val_datasets(self, take_subset=True):
-        image_folder = ImageFolder(root=self.eval_path, transform=transforms.ToTensor())
+        image_folder = ImageFolder(root=self.eval_path, transform=self.wbc_resize_transform)
         # Calculate the number of samples to use for validation
 
         num_total_samples = len(image_folder)
@@ -138,14 +93,6 @@ class PretrainedWBCDataset:
         print("constructing test & val dataset with augmentation")
         return self.construct_dataset(test_dataloader), self.construct_dataset(val_dataloader)
 
-    def find_num_of_transforms_needed_for_balancing(self):
-        unbalanced_train_dataset = ImageFolder(root=self.train_path, transform=transforms.ToTensor())
-
-        target_counts = Counter(unbalanced_train_dataset.targets)
-        target_with_most_count, max_count = target_counts.most_common(1)[0]
-
-        self.num_transforms_for_target = {target: max_count // counts for target, counts in target_counts.items()}
-
     def get_dataloaders(self):
         '''
 
@@ -158,51 +105,35 @@ class PretrainedWBCDataset:
             DeviceDataLoader(self.validation_dataset, self.batch_size)
 
     def construct_dataset(self, dataloader):
-
-        augmented_pRCC_image_tensors = []
-        augmented_cam_image_tensors = []
-
-        # combine these two
-        augmented_wbc_image_tensors = []
-        augmented_image_target_tensors = []
+        pRCC_image_tensors = []
+        cam_image_tensors = []
+        wbc_image_tensors = []
+        image_target_tensors = []
 
         for data in tqdm(dataloader):
-            img_tensor, target_tensor = data
-            img_tensor = img_tensor.squeeze()
+            wbc_img_tensor, target_tensor = data
+            wbc_img_tensor = wbc_img_tensor.squeeze()
 
-            # add the remaining transforms to the list
-            num_of_transformations = self.num_transforms_for_target[target_tensor.item()]
+            # get the image first
+            pRCC_img_tensor = self.pRCC_resize_transform(wbc_img_tensor)
+            cam_img_tensor = self.cam_resize_transform(wbc_img_tensor)
 
-            for _ in range(num_of_transformations):
-                # get the image first
-                wbc_img_tensor = self.wbc_resize_transform(img_tensor)
-                pRCC_img_tensor = self.pRCC_resize_transform(img_tensor)
-                cam_img_tensor = self.cam_resize_transform(img_tensor)
-
-                # get the random transform
-                random_transform = random.choice(self.train_transforms)
-
-                # augment it
-                aug_wbc_img_tensor = random_transform(wbc_img_tensor)
-                aug_pRCC_img_tensor = random_transform(pRCC_img_tensor)
-                aug_cam_img_tensor = random_transform(cam_img_tensor)
-
-                # add it
-                augmented_wbc_image_tensors.append(aug_wbc_img_tensor)
-                augmented_pRCC_image_tensors.append(aug_pRCC_img_tensor)
-                augmented_cam_image_tensors.append(aug_cam_img_tensor)
-                augmented_image_target_tensors.append(target_tensor)
+            # add it
+            wbc_image_tensors.append(wbc_img_tensor)
+            pRCC_image_tensors.append(pRCC_img_tensor)
+            cam_image_tensors.append(cam_img_tensor)
+            image_target_tensors.append(target_tensor)
 
         return TensorDataset(
-            torch.stack(augmented_pRCC_image_tensors),
-            torch.stack(augmented_cam_image_tensors),
-            torch.stack(augmented_wbc_image_tensors),
-            torch.stack(augmented_image_target_tensors)
+            torch.stack(pRCC_image_tensors),
+            torch.stack(cam_image_tensors),
+            torch.stack(wbc_image_tensors),
+            torch.stack(image_target_tensors)
         )
 
 
 if __name__ == '__main__':
-    train_path = os.path.abspath("../../datasets/modified/WBC_10")
+    train_path = os.path.abspath("../../datasets/modified/WBC_1_balanced")
     eval_path = os.path.abspath("../../datasets/modified/WBC_test")
     wbc = PretrainedWBCDataset(train_path, eval_path)
     a, b, c = wbc.get_dataloaders()

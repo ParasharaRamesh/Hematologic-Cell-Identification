@@ -12,14 +12,6 @@ from collections import Counter
 import random
 from tqdm import tqdm
 
-'''
-TODO.x
-
-1. move this to a new place for creating the wbc balancing ( call that module balancing)..
-2. in wbc and wbc_pretrained dont have any balancing stuff... just load from path
-
-'''
-
 
 # This dataset is not balanced therefore we need to apply transformations appropriately
 class WBCDataset:
@@ -43,92 +35,26 @@ class WBCDataset:
         self.eval_path = os.path.join(self.eval_path, "val", "data")
 
         # transformations
-        self.eval_transforms = transforms.Compose([
+        self.transforms = transforms.Compose([
             transforms.Resize((self.resize_to, self.resize_to)),
             transforms.ToTensor()
         ])
 
-        self.train_transforms = [
-            # normal
-            transforms.Compose([
-                transforms.ToPILImage(),
-                transforms.Resize((self.resize_to, self.resize_to)),
-                transforms.ToTensor()
-            ]),
-            # horizontal flips
-            transforms.Compose([
-                transforms.ToPILImage(),
-                transforms.Resize((self.resize_to, self.resize_to)),
-                transforms.RandomHorizontalFlip(),
-                transforms.ToTensor()
-            ]),
-            # vertical flips
-            transforms.Compose([
-                transforms.ToPILImage(),
-                transforms.Resize((self.resize_to, self.resize_to)),
-                transforms.RandomVerticalFlip(),
-                transforms.ToTensor()
-            ]),
-            # transformation with flips
-            transforms.Compose([
-                transforms.ToPILImage(),
-                transforms.Resize((self.resize_to, self.resize_to)),
-                transforms.RandomHorizontalFlip(),
-                transforms.RandomVerticalFlip(),
-                transforms.ToTensor()
-            ]),
-            # transformation with rotation
-            transforms.Compose([
-                transforms.ToPILImage(),
-                transforms.Resize((self.resize_to, self.resize_to)),
-                transforms.RandomRotation(degrees=10),
-                transforms.ToTensor()
-            ]),
-            # transformation with rotation & flips
-            transforms.Compose([
-                transforms.ToPILImage(),
-                transforms.Resize((self.resize_to, self.resize_to)),
-                transforms.RandomRotation(degrees=10),
-                transforms.RandomVerticalFlip(),
-                transforms.RandomHorizontalFlip(),
-                transforms.ToTensor()
-            ])
-        ]
-
-        # self.num_transforms_for_target will contain the number of times each target needs to be transformed
-        self.find_num_of_transforms_needed_for_balancing()
-
         # create dataset
-        self.test_dataset, self.validation_dataset = self.get_test_val_datasets()
         self.train_dataset = self.get_train_dataset()
+        self.test_dataset, self.validation_dataset = self.get_test_val_datasets()
         print("Datasets are initialized")
 
     def get_train_dataset(self):
-        unbalanced_dataset = ImageFolder(root=self.train_path, transform=transforms.ToTensor())
-        dataloader = DeviceDataLoader(unbalanced_dataset, 1)
+        image_folder = ImageFolder(root=self.train_path, transform=self.transforms)
 
-        print("constructing train dataset with augmentation & balancing")
+        # Uncomment for local testing
+        # image_folder = LocalDebug.create_mini_dataset(image_folder, 5)
 
-        augmented_image_tensors = []
-        augmented_image_target_tensors = []
-
-        for data in tqdm(dataloader):
-            img_tensor, target_tensor = data
-            img_tensor = img_tensor.squeeze()
-
-            # add the remainining transforms to the list
-            num_of_transformations = self.num_transforms_for_target[target_tensor.item()]
-            for _ in range(num_of_transformations):
-                random_transform = random.choice(self.train_transforms)
-                random_augmentation_img_tensor = random_transform(img_tensor)
-
-                augmented_image_tensors.append(random_augmentation_img_tensor)
-                augmented_image_target_tensors.append(target_tensor)
-
-        return TensorDataset(torch.stack(augmented_image_tensors), torch.stack(augmented_image_target_tensors))
+        return image_folder
 
     def get_test_val_datasets(self, take_subset=True):
-        image_folder = ImageFolder(root=self.eval_path, transform=self.eval_transforms)
+        image_folder = ImageFolder(root=self.eval_path, transform=self.transforms)
         print("constructing test and val dataset with augmentation")
 
         # Calculate the number of samples to use for validation
@@ -150,14 +76,6 @@ class WBCDataset:
             validation_dataset = LocalDebug.create_mini_dataset(validation_dataset, num_val_eval_samples)
 
         return test_dataset, validation_dataset
-
-    def find_num_of_transforms_needed_for_balancing(self):
-        unbalanced_train_dataset = ImageFolder(root=self.train_path, transform=self.eval_transforms)
-
-        target_counts = Counter(unbalanced_train_dataset.targets)
-        target_with_most_count, max_count = target_counts.most_common(1)[0]
-
-        self.num_transforms_for_target = {target: max_count // counts for target, counts in target_counts.items()}
 
     def get_dataloaders(self):
         '''
