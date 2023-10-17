@@ -4,7 +4,7 @@ import torch.nn as nn
 from models.cam import CamelyonClassifier
 from models.pRCC import pRCCUnetAutoencoder
 from models.wbc import WBCClassifier
-
+from config import params as config
 
 class PretrainedWBCClassifier(nn.Module):
     def __init__(self,
@@ -17,34 +17,42 @@ class PretrainedWBCClassifier(nn.Module):
                  ):
         super().__init__()
 
+        self.pRCC_model = pRCC_model.to(config.device)
+        self.Cam16_model = Cam16_model.to(config.device)
+        self.WBC_model = WBC_model.to(config.device)
+
         if pRCC_weights_path:
             # Load the best weights for the pRCC model and make it non-trainable
-            pRCC_model.load_state_dict(torch.load(pRCC_weights_path))
-            pRCC_model.eval()
-            for param in pRCC_model.parameters():
+            self.pRCC_model.load_state_dict(torch.load(pRCC_weights_path))
+            self.pRCC_model.eval()
+            for param in self.pRCC_model.parameters():
                 param.requires_grad = False
 
         if cam_weights_path:
             # Load the best weights for the Cam16 model and make it non-trainable
-            Cam16_model.load_state_dict(torch.load(cam_weights_path))
-            Cam16_model.eval()
-            for param in Cam16_model.parameters():
+            self.Cam16_model.load_state_dict(torch.load(cam_weights_path))
+            self.Cam16_model.eval()
+            for param in self.Cam16_model.parameters():
                 param.requires_grad = False
 
         if wbc_weights_path:
             # Load the best weights for the WBC model (which remains trainable)
-            WBC_model.load_state_dict(torch.load(wbc_weights_path))
+            self.WBC_model.load_state_dict(torch.load(wbc_weights_path))
 
-        self.pRCC_model = pRCC_model
-        self.Cam16_model = Cam16_model
-        self.WBC_model = WBC_model
-
-        #TODO.x make this a linear stack and dont just have a 1D thing... have a (b,256,16,16)
-        # Modify the pRCC model to add a linear layer (2048 -> 5)
-        self.pRCC_latent_to_output = nn.Linear(2048, 5)
+        self.pRCC_latent_to_output = nn.Sequential(
+            nn.Conv2d(256, 512, kernel_size=4, stride=2, padding=1),  # Output shape: (batch_size, 512, 8, 8)
+            nn.ReLU(),
+            nn.BatchNorm2d(512),
+            nn.MaxPool2d(kernel_size=2, stride=2),  # Output shape: (batch_size, 512, 4, 4)
+            nn.Conv2d(512, 256, kernel_size=4, stride=2, padding=1),  # Output shape: (batch_size, 256, 2, 2)
+            nn.BatchNorm2d(256),
+            nn.ReLU(),
+            nn.Flatten(),  # Output shape: (batch_size, 1024)
+            nn.Linear(1024, 5)  # Output shape: (batch_size, 5)
+        ).to(config.device)
 
         # Additional linear layer to combine the outputs of all three models (5 + 5 + 5)
-        self.combine_outputs = nn.Linear(5, 5)
+        self.combine_outputs = nn.Linear(5, 5).to(config.device)
 
     def forward(self, pRCC_input, Cam16_input, WBC_input):
         # Forward pass through pRCC model
