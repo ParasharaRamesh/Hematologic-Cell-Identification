@@ -39,16 +39,26 @@ class PretrainedWBCClassifier(nn.Module):
             # Load the best weights for the WBC model (which remains trainable)
             self.WBC_model.load_state_dict(torch.load(wbc_weights_path))
 
+        #Input (batch_size, 128, 64, 64)
         self.pRCC_latent_to_output = nn.Sequential(
-            nn.Conv2d(256, 512, kernel_size=4, stride=2, padding=1),  # Output shape: (batch_size, 512, 8, 8)
+            nn.Conv2d(128, 256, kernel_size=3, stride=1, padding=1),  # Output shape: (batch_size, 256, 64, 64)
             nn.ReLU(),
-            nn.BatchNorm2d(512),
-            nn.MaxPool2d(kernel_size=2, stride=2),  # Output shape: (batch_size, 512, 4, 4)
-            nn.Conv2d(512, 256, kernel_size=4, stride=2, padding=1),  # Output shape: (batch_size, 256, 2, 2)
             nn.BatchNorm2d(256),
+            nn.MaxPool2d(kernel_size=2, stride=2),  # Output shape: (batch_size, 256, 32, 32)
+            nn.Conv2d(256, 128, kernel_size=3, stride=1, padding=1),  # Output shape: (batch_size, 128, 32, 32)
             nn.ReLU(),
-            nn.Flatten(),  # Output shape: (batch_size, 1024)
-            nn.Linear(1024, 5)  # Output shape: (batch_size, 5)
+            nn.BatchNorm2d(128),
+            nn.MaxPool2d(kernel_size=2, stride=2),  # Output shape: (batch_size, 128, 16, 16)
+            nn.Conv2d(128, 64, kernel_size=3, stride=1, padding=1),  # Output shape: (batch_size, 64, 16, 16)
+            nn.ReLU(),
+            nn.BatchNorm2d(64),
+            nn.MaxPool2d(kernel_size=2, stride=2),  # Output shape: (batch_size, 64, 8, 8)
+            nn.Conv2d(64, 32, kernel_size=3, stride=1, padding=1),  # Output shape: (batch_size, 32, 8, 8)
+            nn.ReLU(),
+            nn.BatchNorm2d(32),
+            nn.MaxPool2d(kernel_size=2, stride=2),  # Output shape: (batch_size, 32, 4, 4)
+            nn.Flatten(),  # Output shape: (batch_size, 32 * 4 * 4)
+            nn.Linear(32 * 4 * 4, 5)  # Output shape: (batch_size, 5)
         ).to(config.device)
 
         # Additional linear layer to combine the outputs of all three models (5 + 5 + 5)
