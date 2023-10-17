@@ -82,10 +82,6 @@ class pRCCUnetAutoencoder(nn.Module):
 
         return x
 
-#TODO.x 3,1,1 for conv?
-
-#TODO.x 2,2 for deconv
-
 #Regular Autoencoder
 class pRCCAutoencoder(nn.Module):
     def __init__(self):
