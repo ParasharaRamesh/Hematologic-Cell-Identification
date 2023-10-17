@@ -82,26 +82,34 @@ class pRCCUnetAutoencoder(nn.Module):
 
         return x
 
+#TODO.x 3,1,1 for conv?
+
+#TODO.x 2,2 for deconv
+
 #Regular Autoencoder
 class pRCCAutoencoder(nn.Module):
-    def __init__(self, latent_dim=config.pRCC_latent_dim):
+    def __init__(self):
         super().__init__()
 
+
         # Encoder
-        self.encoder_conv1 = nn.Conv2d(3, 32, kernel_size=4, stride=2, padding=1).to(config.device)
-        self.encoder_conv2 = nn.Conv2d(32, 64, kernel_size=4, stride=2, padding=1).to(config.device)
-        self.encoder_conv3 = nn.Conv2d(64, 128, kernel_size=4, stride=2, padding=1).to(config.device)
-        self.encoder_conv4 = nn.Conv2d(128, 256, kernel_size=4, stride=2, padding=1).to(config.device)
-        self.encoder_conv5 = nn.Conv2d(256, 256, kernel_size=4, stride=2, padding=1).to(config.device)
+        self.encoder_conv1 = nn.Conv2d(3, 32, kernel_size=3, padding=1).to(config.device)
+        self.encoder_conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1).to(config.device)
+        self.encoder_conv3 = nn.Conv2d(64, 128, kernel_size=3, padding=1).to(config.device)
+        # self.encoder_conv1 = nn.Conv2d(3, 32, kernel_size=4, stride=2, padding=1).to(config.device)
+        # self.encoder_conv2 = nn.Conv2d(32, 64, kernel_size=4, stride=2, padding=1).to(config.device)
+        # self.encoder_conv3 = nn.Conv2d(64, 128, kernel_size=4, stride=2, padding=1).to(config.device)
 
         # Decoder
-        self.decoder_conv1 = nn.ConvTranspose2d(256, 256, kernel_size=4, stride=2, padding=1).to(config.device)
-        self.decoder_conv2 = nn.ConvTranspose2d(256, 128, kernel_size=4, stride=2, padding=1).to(config.device)
-        self.decoder_conv3 = nn.ConvTranspose2d(128, 64, kernel_size=4, stride=2, padding=1).to(config.device)
-        self.decoder_conv4 = nn.ConvTranspose2d(64, 32, kernel_size=4, stride=2, padding=1).to(config.device)
-        self.decoder_conv5 = nn.ConvTranspose2d(32, 3, kernel_size=4, stride=2, padding=1).to(config.device)
+        self.decoder_conv3 = nn.ConvTranspose2d(128, 64, kernel_size=2, stride=2).to(config.device)
+        self.decoder_conv2 = nn.ConvTranspose2d(64, 32, kernel_size=2, stride=2).to(config.device)
+        self.decoder_conv1 = nn.ConvTranspose2d(32, 3, kernel_size=2, stride=2).to(config.device)
+
+        #Maxpool
+        self.maxpool = nn.MaxPool2d(kernel_size=2, stride=2).to(config.device)
 
         #Batch norms
+        self.bn3 = nn.BatchNorm2d(3).to(config.device)
         self.bn32 = nn.BatchNorm2d(32).to(config.device)
         self.bn64 = nn.BatchNorm2d(64).to(config.device)
         self.bn128 = nn.BatchNorm2d(128).to(config.device)
@@ -113,47 +121,36 @@ class pRCCAutoencoder(nn.Module):
 
     def forward(self, x):
         # Encoding
-        x1_enc = self.encoder_conv1(x)# Shape: (batch_size, 32, 256, 256)
+        x1_enc = self.encoder_conv1(x)# Shape: (batch_size, 32, 512, 512)
         # x1_enc = self.bn32(x1_enc)
         x1_enc = self.relu(x1_enc)
+        x1_enc = self.maxpool(x1_enc) #Shape: (b, 32,256,256)
 
-        x2_enc = self.encoder_conv2(x1_enc)  # Shape: (batch_size, 64, 128, 128)
+        x2_enc = self.encoder_conv2(x1_enc)  # Shape: (batch_size, 64, 256, 256)
         # x2_enc = self.bn64(x2_enc)
         x2_enc = self.relu(x2_enc)
+        x2_enc = self.maxpool(x2_enc) # Shape: (batch_size, 64, 128, 128)
 
-        x3_enc = self.encoder_conv3(x2_enc)  # Shape: (batch_size, 128, 64, 64)
+        x3_enc = self.encoder_conv3(x2_enc)  # Shape: (batch_size, 128, 128, 128)
         # x3_enc = self.bn128(x3_enc)
         x3_enc = self.relu(x3_enc)
+        x3_enc = self.maxpool(x3_enc) # Shape: (batch_size, 128, 64, 64)
 
-        x4_enc = self.encoder_conv4(x3_enc)  # Shape: (batch_size, 256, 32, 32)
-        # x4_enc = self.bn256(x4_enc)
-        x4_enc = self.relu(x4_enc)
-
-        x5_enc = self.encoder_conv5(x4_enc)  # Shape: (batch_size, 256, 16, 16)
-        # x5_enc = self.bn256(x5_enc)
-        x5_enc = self.relu(x5_enc)
 
         # Decoding
-        x5_dec = self.decoder_conv1(x5_enc)  # Shape: (batch_size, 256, 32, 32)
+        x3_dec = self.decoder_conv3(x3_enc)  # Shape: (batch_size, 64, 128, 128)
         # x5_dec = self.bn256(x5_dec)
-        x5_dec = self.relu(x5_dec)
-
-        x4_dec = self.decoder_conv2(x5_dec)  # Shape: (batch_size, 128, 64, 64)
-        # x4_dec = self.bn128(x4_dec)
-        x4_dec = self.relu(x4_dec)
-
-        x3_dec = self.decoder_conv3(x4_dec)  # Shape: (batch_size, 64, 128, 128)
-        # x3_dec = self.bn64(x3_dec)
         x3_dec = self.relu(x3_dec)
 
-        x2_dec = self.decoder_conv4(x3_dec)  # Shape: (batch_size, 32, 256, 256)
-        # x2_dec = self.bn32(x2_dec)
+        x2_dec = self.decoder_conv2(x3_dec)  # Shape: (batch_size, 32, 256, 256)
+        # x4_dec = self.bn128(x4_dec)
         x2_dec = self.relu(x2_dec)
 
-        x1_dec = self.decoder_conv5(x2_dec)  # Shape: (batch_size, 3, 512, 512)
+        x1_dec = self.decoder_conv1(x2_dec)  # Shape: (batch_size, 3, 512, 512)
+        # x1_dec = self.bn3(x1_dec)
         x1_dec = self.sigmoid(x1_dec)
 
-        return x5_enc, x1_dec
+        return x3_enc, x1_dec
 
 
 
@@ -161,8 +158,7 @@ class pRCCAutoencoder(nn.Module):
 if __name__ == '__main__':
     # Example usage:
     # autoencoder = pRCCUnetAutoencoder().to(config.device)
-    autoencoder = pRCCAutoencoder(latent_dim=256).to(config.device)
-    summary(autoencoder, input_size=(3, 256, 256), device=config.device, batch_dim=0,
-            col_names=["input_size", "output_size", "num_params", "kernel_size", "mult_adds"], verbose=1)
-    # input_tensor = torch.randn(1, 3, 512, 512).to(config.device)
-    # latent, output = autoencoder(input_tensor)
+    autoencoder = pRCCAutoencoder().to(config.device)
+    # summary(autoencoder, input_size=(3, 256, 256), device=config.device, batch_dim=0,col_names=["input_size", "output_size", "num_params", "kernel_size", "mult_adds"], verbose=1)
+    input_tensor = torch.randn(1, 3, 512, 512).to(config.device)
+    latent, output = autoencoder(input_tensor)
