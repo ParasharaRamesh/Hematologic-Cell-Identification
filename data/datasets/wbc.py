@@ -13,11 +13,11 @@ import random
 from tqdm import tqdm
 
 
-# This dataset is not balanced therefore we need to apply transformations appropriately
 class WBCDataset:
     def __init__(self,
                  train_path,
                  eval_path,
+                 take_subset=False,
                  eval_size=200,
                  val_split=config.validation_split,
                  batch_size=config.wbc_batch_size,
@@ -29,6 +29,7 @@ class WBCDataset:
         self.resize_to = resize_to
         self.val_split = val_split
         self.eval_size = eval_size
+        self.take_subset = take_subset
 
         # paths
         self.train_path = os.path.join(self.train_path, "train", "data")
@@ -60,14 +61,13 @@ class WBCDataset:
         # Calculate the number of samples to use for validation
         num_total_samples = len(image_folder)
 
-
         # find the no of train samples
         num_validation_samples = int(num_total_samples * self.val_split)
         num_test_samples = num_total_samples - num_validation_samples
 
         test_dataset, validation_dataset = random_split(image_folder, [num_test_samples, num_validation_samples])
 
-        if take_subset:
+        if self.take_subset:
             # find the no of train samples
             num_val_eval_samples = int(self.eval_size * self.val_split)
             num_test_eval_samples = self.eval_size - num_val_eval_samples
