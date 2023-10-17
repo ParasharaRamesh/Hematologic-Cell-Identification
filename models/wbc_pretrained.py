@@ -39,6 +39,7 @@ class PretrainedWBCClassifier(nn.Module):
         self.Cam16_model = Cam16_model
         self.WBC_model = WBC_model
 
+        #TODO.x make this a linear stack and dont just have a 1D thing... have a (b,256,16,16)
         # Modify the pRCC model to add a linear layer (2048 -> 5)
         self.pRCC_latent_to_output = nn.Linear(2048, 5)
 

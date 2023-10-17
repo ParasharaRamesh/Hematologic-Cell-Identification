@@ -82,65 +82,67 @@ class pRCCUnetAutoencoder(nn.Module):
 
         return x
 
-#TODO.x try this approach as well
+#Regular Autoencoder
 class pRCCAutoencoder(nn.Module):
     def __init__(self, latent_dim=config.pRCC_latent_dim):
         super().__init__()
 
         # Encoder
-        self.encoder_conv1 = nn.Conv2d(3, 32, kernel_size=4, stride=2, padding=1).to(config.device)  # Output: (batch_size, 32, 256, 256)
-        self.encoder_conv2 = nn.Conv2d(32, 64, kernel_size=4, stride=2, padding=1).to(config.device)  # Output: (batch_size, 64, 128, 128)
-        self.encoder_conv3 = nn.Conv2d(64, 128, kernel_size=4, stride=2, padding=1).to(config.device)  # Output: (batch_size, 128, 64, 64)
-        self.encoder_conv4 = nn.Conv2d(128, 256, kernel_size=4, stride=2, padding=1).to(config.device)  # Output: (batch_size, 256, 32, 32)
-
-        # Latent representation
-        self.fc_latent = nn.Sequential(
-            nn.Conv2d(256, 512, kernel_size=4, stride=2, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(512, 512, kernel_size=4, stride=2, padding=1),
-            nn.ReLU()
-        ).to(config.device)
-
-        self.fc_latent_flatten = nn.Flatten().to(config.device)
-
-        self.fc_linear = nn.Sequential(
-            nn.Linear(512 * 8 * 8, 4096),
-            nn.ReLU(),
-            nn.Linear(4096, latent_dim),
-            nn.ReLU()
-        ).to(config.device)
+        self.encoder_conv1 = nn.Conv2d(3, 32, kernel_size=4, stride=2, padding=1).to(config.device)
+        self.encoder_conv2 = nn.Conv2d(32, 64, kernel_size=4, stride=2, padding=1).to(config.device)
+        self.encoder_conv3 = nn.Conv2d(64, 128, kernel_size=4, stride=2, padding=1).to(config.device)
+        self.encoder_conv4 = nn.Conv2d(128, 256, kernel_size=4, stride=2, padding=1).to(config.device)
+        self.encoder_conv5 = nn.Conv2d(256, 256, kernel_size=4, stride=2, padding=1).to(config.device)
 
         # Decoder
-        self.decoder_conv1 = nn.ConvTranspose2d(512, 256, kernel_size=4, stride=2, padding=1).to(
-            config.device)  # Output: (batch_size, 256, 64, 64)
-        self.decoder_conv2 = nn.ConvTranspose2d(256, 128, kernel_size=4, stride=2, padding=1).to(
-            config.device)  # Output: (batch_size, 128, 128, 128)
-        self.decoder_conv3 = nn.ConvTranspose2d(128, 64, kernel_size=4, stride=2, padding=1).to(
-            config.device)  # Output: (batch_size, 64, 256, 256)
-        self.decoder_conv4 = nn.ConvTranspose2d(64, 3, kernel_size=4, stride=2, padding=1).to(
-            config.device)  # Output: (batch_size, 3, 512, 512)
+        self.decoder_conv1 = nn.ConvTranspose2d(256, 256, kernel_size=4, stride=2, padding=1).to(config.device)
+        self.decoder_conv2 = nn.ConvTranspose2d(256, 128, kernel_size=4, stride=2, padding=1).to(config.device)
+        self.decoder_conv3 = nn.ConvTranspose2d(128, 64, kernel_size=4, stride=2, padding=1).to(config.device)
+        self.decoder_conv4 = nn.ConvTranspose2d(64, 32, kernel_size=4, stride=2, padding=1).to(config.device)
+        self.decoder_conv5 = nn.ConvTranspose2d(32, 3, kernel_size=4, stride=2, padding=1).to(config.device)
 
+        #Batch norms
+        self.bn32 = nn.BatchNorm2d(32).to(config.device)
+        self.bn64 = nn.BatchNorm2d(64).to(config.device)
+        self.bn128 = nn.BatchNorm2d(128).to(config.device)
+        self.bn256 = nn.BatchNorm2d(256).to(config.device)
+
+        #Activation
         self.relu = nn.ReLU().to(config.device)
 
     def forward(self, x):
         # Encoding
-        x1_enc = self.encoder_conv1(x)  # Shape: (batch_size, 32, 256, 256)
-        x2_enc = self.encoder_conv2(x1_enc)  # Shape: (batch_size, 64, 128, 128)
-        x3_enc = self.encoder_conv3(x2_enc)  # Shape: (batch_size, 128, 64, 64)
-        x4_enc = self.encoder_conv4(x3_enc)  # Shape: (batch_size, 256, 32, 32)
+        x1_enc = self.encoder_conv1(x)# Shape: (batch_size, 32, 256, 256)
+        x1_enc = self.relu(self.bn32(x1_enc))
 
-        # Latent representation
-        x_latent = self.fc_latent(x4_enc)  # Shape: (batch_size, 512, 8, 8)
-        x_latent_flat = self.fc_latent_flatten(x_latent)  # Shape: (batch_size, 32768)
-        latent = self.fc_linear(x_latent_flat)  # Shape: (batch_size, latent_dim)
+        x2_enc = self.encoder_conv2(x1_enc)  # Shape: (batch_size, 64, 128, 128)
+        x2_enc = self.relu(self.bn64(x2_enc))
+
+        x3_enc = self.encoder_conv3(x2_enc)  # Shape: (batch_size, 128, 64, 64)
+        x3_enc = self.relu(self.bn128(x3_enc))
+
+        x4_enc = self.encoder_conv4(x3_enc)  # Shape: (batch_size, 256, 32, 32)
+        x4_enc = self.relu(self.bn256(x4_enc))
+
+        x5_enc = self.encoder_conv5(x4_enc)  # Shape: (batch_size, 256, 16, 16)
+        x5_enc = self.relu(self.bn256(x5_enc))
 
         # Decoding
-        x4_dec = self.decoder_conv1(x_latent)  # Shape: (batch_size, 256, 64, 64)
-        x3_dec = self.decoder_conv2(x4_dec)  # Shape: (batch_size, 128, 128, 128)
-        x2_dec = self.decoder_conv3(x3_dec)  # Shape: (batch_size, 64, 256, 256)
-        x1_dec = self.decoder_conv4(x2_dec)  # Shape: (batch_size, 3, 512, 512)
+        x5_dec = self.decoder_conv1(x5_enc)  # Shape: (batch_size, 256, 32, 32)
+        x5_dec = self.relu(self.bn256(x5_dec))
 
-        return latent, x1_dec
+        x4_dec = self.decoder_conv2(x5_dec)  # Shape: (batch_size, 128, 64, 64)
+        x4_dec = self.relu(self.bn128(x4_dec))
+
+        x3_dec = self.decoder_conv3(x4_dec)  # Shape: (batch_size, 64, 128, 128)
+        x3_dec = self.relu(self.bn64(x3_dec))
+
+        x2_dec = self.decoder_conv4(x3_dec)  # Shape: (batch_size, 32, 256, 256)
+        x2_dec = self.relu(self.bn32(x2_dec))
+
+        x1_dec = self.decoder_conv5(x2_dec)  # Shape: (batch_size, 3, 512, 512)
+
+        return x5_enc, x1_dec
 
 
 
