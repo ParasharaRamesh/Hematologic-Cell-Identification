@@ -51,9 +51,8 @@ class PretrainedWBCDataset:
 
     def get_train_dataset(self):
         unbalanced_dataset = ImageFolder(root=self.train_path, transform=self.wbc_resize_transform)
-        dataloader = DeviceDataLoader(unbalanced_dataset, batch_size=self.batch_size)
-        print("constructing train dataset with augmentation & balancing")
-        return MedicalDataset(dataloader)
+        print("constructing train dataset")
+        return MedicalDataset(unbalanced_dataset)
 
     def get_test_val_datasets(self):
         image_folder = ImageFolder(root=self.eval_path, transform=self.wbc_resize_transform)
@@ -75,11 +74,8 @@ class PretrainedWBCDataset:
             test_dataset = LocalDebug.create_mini_dataset(test_dataset, num_test_eval_samples)
             validation_dataset = LocalDebug.create_mini_dataset(validation_dataset, num_val_eval_samples)
 
-        test_dataloader = DeviceDataLoader(test_dataset, batch_size=self.batch_size)
-        val_dataloader = DeviceDataLoader(validation_dataset, batch_size=self.batch_size)
-
         print("constructing test & val dataset with augmentation")
-        return MedicalDataset(test_dataloader), MedicalDataset(val_dataloader)
+        return MedicalDataset(test_dataset), MedicalDataset(validation_dataset)
 
     def get_dataloaders(self):
         '''
@@ -97,13 +93,13 @@ Custom dataset for yielding the data as per different model input sizes
 '''
 class MedicalDataset(Dataset):
     def __init__(self,
-                 dataloader,
+                 dataset,
                  wbc_resize_to=config.wbc_img_resize_target,
                  cam_resize_to=config.cam_img_resize_target,
                  pRCC_resize_to=config.pRCC_img_resize_target
                  ):
         super().__init__()
-        self.dataloader = dataloader
+        self.dataset = dataset
         # image resize sizes
         self.cam_resize_to = cam_resize_to
         self.pRCC_resize_to = pRCC_resize_to
@@ -124,10 +120,10 @@ class MedicalDataset(Dataset):
             transforms.ToTensor()
         ])
     def __len__(self):
-        return len(self.dataloader)  # You can also compute the length differently if needed.
+        return len(self.dataset)  # You can also compute the length differently if needed.
 
     def __getitem__(self, idx):
-        data = next(self.dataloader)
+        data = self.dataset[idx]
         wbc_img_tensor, target_tensor = data
         wbc_img_tensor = wbc_img_tensor.squeeze()
         pRCC_img_tensor = self.pRCC_resize_transform(wbc_img_tensor)

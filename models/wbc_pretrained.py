@@ -22,22 +22,39 @@ class PretrainedWBCClassifier(nn.Module):
         self.WBC_model = WBC_model.to(config.device)
 
         if pRCC_weights_path:
+            print(f"Loading the pRCC weights from {pRCC_weights_path}")
+            pRCC_checkpoint = torch.load(pRCC_weights_path, map_location=config.device)
+            print(f"Retrieved the pRCC Checkpoint file!")
+            print(f"Keys present in this checkpoint are {pRCC_checkpoint.keys()}")
             # Load the best weights for the pRCC model and make it non-trainable
-            self.pRCC_model.load_state_dict(torch.load(pRCC_weights_path))
+            self.pRCC_model.load_state_dict(pRCC_checkpoint['model_state_dict'])
+            print(f"Finished loading the pRCC weights from {pRCC_weights_path}")
             self.pRCC_model.eval()
             for param in self.pRCC_model.parameters():
                 param.requires_grad = False
+            print(f"Setting the pRCC model to eval mode and non trainable!")
 
         if cam_weights_path:
+            print(f"Loading the Camelyon weights from {cam_weights_path}")
             # Load the best weights for the Cam16 model and make it non-trainable
-            self.Cam16_model.load_state_dict(torch.load(cam_weights_path))
+            cam_checkpoint = torch.load(cam_weights_path, map_location=config.device)
+            print(f"Retrieved the Camelyon Checkpoint file!")
+            print(f"Keys present in this checkpoint are {cam_checkpoint.keys()}")
+            self.Cam16_model.load_state_dict(cam_checkpoint['model_state_dict'])
+            print(f"Finished loading the Camelyon weights from {cam_weights_path}")
             self.Cam16_model.eval()
             for param in self.Cam16_model.parameters():
                 param.requires_grad = False
+            print(f"Setting the Camelyon model to eval mode and non trainable!")
 
         if wbc_weights_path:
+            print(f"Loading the base WBC weights from {wbc_weights_path}")
             # Load the best weights for the WBC model (which remains trainable)
-            self.WBC_model.load_state_dict(torch.load(wbc_weights_path))
+            wbc_checkpoint = torch.load(wbc_weights_path, map_location=config.device)
+            print(f"Retrieved the WBC Checkpoint file!")
+            print(f"Keys present in this checkpoint are {wbc_checkpoint.keys()}")
+            self.WBC_model.load_state_dict(wbc_checkpoint)
+            print(f"Finished loading the base WBC weights from {wbc_weights_path}")
 
         #Input (batch_size, 128, 64, 64)
         self.pRCC_latent_to_output = nn.Sequential(
