@@ -10,18 +10,16 @@ class WBCClassifier(nn.Module):
 
         self.num_classes = num_classes
 
-        self.conv1 = self.conv_and_batch_norm_block(3, 64)
-        self.conv2 = self.conv_and_batch_norm_block(64, 128, pool=True)
-        self.res1 = self.conv_and_batch_norm_block(128, 128)
-        self.res2 = self.conv_and_batch_norm_block(128, 128)
+        self.conv1 = self.conv_and_batch_norm_block(3, 64, pool=True)
+        self.conv2 = self.conv_and_batch_norm_block(64, 64, pool=True)
+        self.res1 = self.conv_and_batch_norm_block(64, 64)
+        self.res2 = self.conv_and_batch_norm_block(64, 64)
 
-        self.conv3 = self.conv_and_batch_norm_block(128, 256, pool=True)
-        self.conv4 = self.conv_and_batch_norm_block(256, 512, pool=True)
+        self.conv3 = self.conv_and_batch_norm_block(64, 32, pool=True)
+        self.conv4 = self.conv_and_batch_norm_block(32, 16, pool=True)
+        self.res3 = self.conv_and_batch_norm_block(16, 16)
+        self.res4 = self.conv_and_batch_norm_block(16, 16)
 
-        self.res3 = self.conv_and_batch_norm_block(512, 512)
-        self.res4 = self.conv_and_batch_norm_block(512, 512)
-
-        #
         # #new approach with only resnet18
         # # Replace the initial layers with a pre-trained ResNet-18 backbone
         # self.resnet18 = models.resnet18(pretrained=True).to(config.device)
@@ -35,31 +33,22 @@ class WBCClassifier(nn.Module):
         # self.resnet18.fc = nn.Identity().to(config.device)  # Remove the fully connected layer (classifier)
 
         self.classifier = nn.Sequential(
+            #Input shape is (b, 16,16,16)
             # Convolutional layers to reduce spatial dimensions
-            nn.Conv2d(512, 256, kernel_size=3, stride=1, padding=1),  # Shape: (b, 256, 32, 32)
-            nn.ReLU(),  # Shape: (b, 256, 32, 32)
-            nn.MaxPool2d(kernel_size=2, stride=2),  # Shape: (b, 256, 16, 16)
+            nn.Conv2d(16, 8, kernel_size=3, stride=1, padding=1),  # Shape: (b, 8, 16, 16)
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2),  # Shape: (b, 8, 8, 8)
 
-            nn.Conv2d(256, 128, kernel_size=3, stride=1, padding=1),  # Shape: (b, 128, 16, 16)
-            nn.ReLU(),  # Shape: (b, 128, 16, 16)
-            nn.MaxPool2d(kernel_size=2, stride=2),  # Shape: (b, 128, 8, 8)
-
-            # Additional Convolutional layer to reduce channels
-            nn.Conv2d(128, 64, kernel_size=3, stride=1, padding=1),  # Shape: (b, 64, 8, 8)
-            nn.ReLU(),  # Shape: (b, 64, 8, 8)
-            nn.MaxPool2d(kernel_size=2, stride=2),  # Shape: (b, 64, 4, 4)
-
-            # Flatten the output to feed into linear layers
             nn.Flatten(),  # Shape: (b, 64 * 4 * 4)
 
             # Linear layers with ReLU activation
-            nn.Linear(64 * 4 * 4, 64),  # Shape: (b, 64)
+            nn.Linear(8 * 8 * 8, 64),  # Shape: (b, 64)
             nn.ReLU(),  # Shape: (b, 64)
 
-            nn.Linear(64, 32),  # Shape: (b, 32)
+            nn.Linear(64, 8),  # Shape: (b, 32)
             nn.ReLU(),  # Shape: (b, 32)
 
-            nn.Linear(32, self.num_classes)  # Final linear layer with output size 5 (for 5 classes)
+            nn.Linear(8, self.num_classes)  # Final linear layer with output size 5 (for 5 classes)
         ).to(config.device)
 
     def conv_and_batch_norm_block(self, in_channels, out_channels, pool=False):
@@ -81,15 +70,15 @@ class WBCClassifier(nn.Module):
     #     return classified
 
     def forward(self, x):
-        out = self.conv1(x)  # shape (b,64,256,256)
-        out1 = self.conv2(out)  # shape (b,128,128,128)
-        out = self.res1(out1) + out1  # skip connections, shape (b,128,128,128)
-        out = out1 + self.res2(out) + out  # multi skip connections, shape (b,128,128,128)
+        out = self.conv1(x)  # shape (b,64,128,128)
+        out1 = self.conv2(out)  # shape (b,64,64,64)
+        out = self.res1(out1) + out1  # skip connections, shape (b,64,64,64)
+        out = out1 + self.res2(out) + out  # multi skip connections, shape (b,64,64,64)
 
-        out = self.conv3(out)  # shape is (b,256,64,64)
-        out2 = self.conv4(out)  # shape is (b,512,32,32)
-        out = self.res3(out2) + out2  # skip connections, shape is (b,512,32,32)
-        out = out2 + self.res4(out) + out  # multi skip connections, shape is (b,512,32,32)
+        out = self.conv3(out)  # shape is (b,32,32,32)
+        out2 = self.conv4(out)  # shape is (b,16,16,16)
+        out = self.res3(out2) + out2  # skip connections, shape is (b,16,16,16)
+        out = out2 + self.res4(out) + out  # multi skip connections, shape is (b,16,16,16)
 
         out = self.classifier(out)
         return out
@@ -97,8 +86,8 @@ class WBCClassifier(nn.Module):
 
 if __name__ == '__main__':
     # Example usage:
-    cam = WBCClassifier().to(config.device)
-    # summary(cam, input_size=(3, 256, 256), device=config.device, batch_dim=0,
-    #         col_names=["input_size", "output_size", "num_params", "kernel_size", "mult_adds"], verbose=1)
-    input_tensor = torch.randn(1, 3, 256, 256).to(config.device)
-    output = cam(input_tensor)
+    wbc = WBCClassifier().to(config.device)
+    summary(wbc, input_size=(3, 256, 256), device=config.device, batch_dim=0,
+            col_names=["input_size", "output_size", "num_params", "kernel_size", "mult_adds"], verbose=1)
+    # input_tensor = torch.randn(1, 3, 256, 256).to(config.device)
+    # output = cam(input_tensor)
