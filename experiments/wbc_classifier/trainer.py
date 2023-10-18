@@ -1,5 +1,6 @@
 import os
 import torch
+from skimage import metrics
 from torch import nn
 from torch.utils.data import Subset
 import numpy as np
@@ -8,7 +9,7 @@ from data.move.device_data_loader import DeviceDataLoader
 from experiments.base.trainer import Trainer
 import matplotlib.pyplot as plt
 import torch.nn.functional as F
-from sklearn.metrics import confusion_matrix, f1_score, recall_score, precision_score
+from sklearn.metrics import confusion_matrix, f1_score, recall_score, precision_score, ConfusionMatrixDisplay
 from experiments.classify.trainer import ClassificationTrainer
 
 class WBCClassifierTrainer(ClassificationTrainer):
@@ -141,25 +142,10 @@ class WBCClassifierTrainer(ClassificationTrainer):
         return conf_matrix, prettified_f1_scores, prettified_precision_scores, prettified_recall_scores
 
     def print_confusion_matrix(self, conf_matrix):
-        num_classes = len(self.class_names)
-
-        print("Confusion Matrix:")
-
-        # Print header row with class names
-        header = ["Actual\Predicted"] + self.class_names
-        print("\t".join(header))
-
-        # Print TP and TN for each class
-        for i in range(num_classes):
-            row = [self.class_names[i]]  # Class label
-
-            # Calculate TP and TN for the class
-            TP = conf_matrix[i, i]
-            TN = sum([conf_matrix[j, k] for j in range(num_classes) for k in range(num_classes) if j != i and k != i])
-
-            row.extend([f"TP:{TP}", f"TN:{TN}"])
-            print("\t".join(row))
-
+        print("Confusion Matrix")
+        cm_display = ConfusionMatrixDisplay(confusion_matrix=conf_matrix, display_labels=self.class_names)
+        cm_display.plot()
+        plt.show()
 
 if __name__ == '__main__':
     pass

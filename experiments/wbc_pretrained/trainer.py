@@ -1,5 +1,6 @@
 import torch
-from sklearn.metrics import confusion_matrix, f1_score, recall_score, precision_score
+from matplotlib import pyplot as plt
+from sklearn.metrics import confusion_matrix, f1_score, recall_score, precision_score, ConfusionMatrixDisplay
 from torch import nn, optim
 import config.params as config
 from experiments.wbc_classifier.trainer import WBCClassifierTrainer
@@ -134,21 +135,7 @@ class PretrainedWBCClassifierTrainer(WBCClassifierTrainer):
         return conf_matrix, prettified_f1_scores, prettified_precision_scores, prettified_recall_scores
 
     def print_confusion_matrix(self, conf_matrix):
-        num_classes = len(self.class_names)
-
-        print("Confusion Matrix:")
-
-        # Print header row with class names
-        header = ["Actual\Predicted"] + self.class_names
-        print("\t".join(header))
-
-        # Print TP and TN for each class
-        for i in range(num_classes):
-            row = [self.class_names[i]]  # Class label
-
-            # Calculate TP and TN for the class
-            TP = conf_matrix[i, i]
-            TN = sum([conf_matrix[j, k] for j in range(num_classes) for k in range(num_classes) if j != i and k != i])
-
-            row.extend([f"TP:{TP}", f"TN:{TN}"])
-            print("\t".join(row))
+        print("Confusion Matrix")
+        cm_display = ConfusionMatrixDisplay(confusion_matrix=conf_matrix, display_labels=self.class_names)
+        cm_display.plot()
+        plt.show()
