@@ -100,6 +100,10 @@ class PretrainedWBCClassifierTrainer(WBCClassifierTrainer):
                 total_test_samples += test_labels.size(0)
                 test_correct_predictions += (test_predicted == test_labels).sum().item()
 
+                # Append true and predicted labels for each batch
+                true_labels.extend(test_labels.cpu().numpy())
+                predicted_labels.extend(test_predicted.cpu().numpy())
+
         # Calculate average validation loss for the epoch
         avg_test_loss = test_loss / len(self.test_loader)
 

@@ -83,20 +83,20 @@ class PretrainedWBCClassifier(nn.Module):
 
     def forward(self, pRCC_input, Cam16_input, WBC_input):
         # Forward pass through pRCC model
-        pRCC_latent, _ = self.pRCC_model(pRCC_input)
-        pRCC_output = self.pRCC_latent_to_output(pRCC_latent)
+        pRCC_latent, _ = self.pRCC_model(pRCC_input) # b, 128,250,250
+        pRCC_output = self.pRCC_latent_to_output(pRCC_latent) #b,5
 
         # Forward pass through Cam16 model ( the second one is the prediction across 2 classes)
-        Cam16_output, _ = self.Cam16_model(Cam16_input)
+        Cam16_output, _ = self.Cam16_model(Cam16_input) #b,5
 
         # Forward pass through WBC model
-        WBC_output = self.WBC_model(WBC_input)
+        WBC_output = self.WBC_model(WBC_input) #b,5
 
         # Combine the outputs from each of the model
-        combined_output = pRCC_output + Cam16_output + WBC_output
+        combined_output = pRCC_output + Cam16_output + WBC_output #b,5
 
         # Combine the outputs of all three models
-        combined_predictor = self.combine_outputs(combined_output)
+        combined_predictor = self.combine_outputs(combined_output) #b,5
 
         return combined_predictor
 
