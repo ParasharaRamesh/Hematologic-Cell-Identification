@@ -1,7 +1,7 @@
 import torch
 
 import config.params as config
-from torch.utils.data import ConcatDataset, random_split, Subset, DataLoader, TensorDataset
+from torch.utils.data import ConcatDataset, random_split, Subset, DataLoader, TensorDataset, Dataset
 import os
 from torchvision.datasets import ImageFolder
 from torchvision import transforms
@@ -22,52 +22,40 @@ class PretrainedWBCDataset:
                  val_split=config.validation_split,
                  batch_size=config.wbc_batch_size,
                  wbc_resize_to=config.wbc_img_resize_target,
-                 cam_resize_to=config.cam_img_resize_target,
-                 pRCC_resize_to=config.pRCC_img_resize_target,
-                 ):
+                 take_subset=False
+             ):
         # constants
         self.train_path = train_path
         self.eval_path = eval_path
         self.batch_size = batch_size
         self.val_split = val_split
         self.eval_size = eval_size
-
-        # image resize sizes
-        self.wbc_resize_to = wbc_resize_to
-        self.cam_resize_to = cam_resize_to
-        self.pRCC_resize_to = pRCC_resize_to
+        self.take_subset = take_subset
 
         # paths
         self.train_path = os.path.join(self.train_path, "train", "data")
         self.eval_path = os.path.join(self.eval_path, "val", "data")
+
+        self.wbc_resize_to = wbc_resize_to
 
         # transformations
         self.wbc_resize_transform = transforms.Compose([
             transforms.Resize((self.wbc_resize_to, self.wbc_resize_to)),
             transforms.ToTensor()
         ])
-        self.cam_resize_transform = self.resize_transformations(self.cam_resize_to)
-        self.pRCC_resize_transform = self.resize_transformations(self.pRCC_resize_to)
 
         # create dataset
         self.test_dataset, self.validation_dataset = self.get_test_val_datasets()
         self.train_dataset = self.get_train_dataset()
         print("Datasets are initialized")
 
-    def resize_transformations(self, resize_to):
-        return transforms.Compose([
-            transforms.ToPILImage(),
-            transforms.Resize((resize_to, resize_to)),
-            transforms.ToTensor()
-        ])
-
     def get_train_dataset(self):
         unbalanced_dataset = ImageFolder(root=self.train_path, transform=self.wbc_resize_transform)
-        dataloader = DeviceDataLoader(unbalanced_dataset, 1)
+        dataloader = DeviceDataLoader(unbalanced_dataset, batch_size=self.batch_size)
         print("constructing train dataset with augmentation & balancing")
-        return self.construct_dataset(dataloader)
+        return MedicalDataset(dataloader)
 
-    def get_test_val_datasets(self, take_subset=True):
+    def get_test_val_datasets(self):
         image_folder = ImageFolder(root=self.eval_path, transform=self.wbc_resize_transform)
         # Calculate the number of samples to use for validation
 
@@ -79,7 +67,7 @@ class PretrainedWBCDataset:
 
         test_dataset, validation_dataset = random_split(image_folder, [num_test_samples, num_validation_samples])
 
-        if take_subset:
+        if self.take_subset:
             # find the no of train samples
             num_val_eval_samples = int(self.eval_size * self.val_split)
             num_test_eval_samples = self.eval_size - num_val_eval_samples
@@ -87,11 +75,11 @@ class PretrainedWBCDataset:
             test_dataset = LocalDebug.create_mini_dataset(test_dataset, num_test_eval_samples)
             validation_dataset = LocalDebug.create_mini_dataset(validation_dataset, num_val_eval_samples)
 
-        test_dataloader = DeviceDataLoader(test_dataset, 1)
-        val_dataloader = DeviceDataLoader(validation_dataset, 1)
+        test_dataloader = DeviceDataLoader(test_dataset, batch_size=self.batch_size)
+        val_dataloader = DeviceDataLoader(validation_dataset, batch_size=self.batch_size)
 
         print("constructing test & val dataset with augmentation")
-        return self.construct_dataset(test_dataloader), self.construct_dataset(val_dataloader)
+        return MedicalDataset(test_dataloader), MedicalDataset(val_dataloader)
 
     def get_dataloaders(self):
         '''
@@ -104,32 +92,47 @@ class PretrainedWBCDataset:
             DeviceDataLoader(self.test_dataset, self.batch_size), \
             DeviceDataLoader(self.validation_dataset, self.batch_size)
 
-    def construct_dataset(self, dataloader):
-        pRCC_image_tensors = []
-        cam_image_tensors = []
-        wbc_image_tensors = []
-        image_target_tensors = []
+'''
+Custom dataset for yielding the data as per different model input sizes
+'''
+class MedicalDataset(Dataset):
+    def __init__(self,
+                 dataloader,
+                 wbc_resize_to=config.wbc_img_resize_target,
+                 cam_resize_to=config.cam_img_resize_target,
+                 pRCC_resize_to=config.pRCC_img_resize_target
+                 ):
+        super().__init__()
+        self.dataloader = dataloader
+        # image resize sizes
+        self.cam_resize_to = cam_resize_to
+        self.pRCC_resize_to = pRCC_resize_to
+        self.wbc_resize_to = wbc_resize_to
 
-        for data in tqdm(dataloader):
-            wbc_img_tensor, target_tensor = data
-            wbc_img_tensor = wbc_img_tensor.squeeze()
+        # transformations
+        self.wbc_resize_transform = transforms.Compose([
+            transforms.Resize((self.wbc_resize_to, self.wbc_resize_to)),
+            transforms.ToTensor()
+        ])
+        self.cam_resize_transform = self.resize_transformations(self.cam_resize_to)
+        self.pRCC_resize_transform = self.resize_transformations(self.pRCC_resize_to)
 
-            # get the image first
-            pRCC_img_tensor = self.pRCC_resize_transform(wbc_img_tensor)
-            cam_img_tensor = self.cam_resize_transform(wbc_img_tensor)
+    def resize_transformations(self, resize_to):
+        return transforms.Compose([
+            transforms.ToPILImage(),
+            transforms.Resize((resize_to, resize_to)),
+            transforms.ToTensor()
+        ])
+    def __len__(self):
+        return len(self.dataloader)  # You can also compute the length differently if needed.
 
-            # add it
-            wbc_image_tensors.append(wbc_img_tensor)
-            pRCC_image_tensors.append(pRCC_img_tensor)
-            cam_image_tensors.append(cam_img_tensor)
-            image_target_tensors.append(target_tensor)
-
-        return TensorDataset(
-            torch.stack(pRCC_image_tensors),
-            torch.stack(cam_image_tensors),
-            torch.stack(wbc_image_tensors),
-            torch.stack(image_target_tensors)
-        )
+    def __getitem__(self, idx):
+        data = next(self.dataloader)
+        wbc_img_tensor, target_tensor = data
+        wbc_img_tensor = wbc_img_tensor.squeeze()
+        pRCC_img_tensor = self.pRCC_resize_transform(wbc_img_tensor)
+        cam_img_tensor = self.cam_resize_transform(wbc_img_tensor)
+        return pRCC_img_tensor, cam_img_tensor, wbc_img_tensor, target_tensor
 
 
 if __name__ == '__main__':
