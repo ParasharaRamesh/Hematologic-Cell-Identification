@@ -1,4 +1,5 @@
 import torch
+from sklearn.metrics import confusion_matrix, f1_score, recall_score, precision_score
 from torch import nn, optim
 import config.params as config
 from experiments.wbc_classifier.trainer import WBCClassifierTrainer
@@ -6,6 +7,11 @@ from experiments.wbc_classifier.trainer import WBCClassifierTrainer
 class PretrainedWBCClassifierTrainer(WBCClassifierTrainer):
     def __init__(self, name, dataset, model, save_dir, num_classes=5):
         super().__init__(name, dataset, model, save_dir, num_classes)
+
+        # Class labels
+        self.class_labels = {'Basophil': 0, 'Eosinophil': 1, 'Lymphocyte': 2, 'Monocyte': 3, 'Neutrophil': 4}
+        # Prettify class labels
+        self.class_names = list(self.class_labels.keys())
 
     # hooks
     def calculate_loss_hook(self, data):
@@ -71,6 +77,10 @@ class PretrainedWBCClassifierTrainer(WBCClassifierTrainer):
         test_correct_predictions = 0
         total_test_samples = 0
 
+        # Initialize lists to store true labels and predicted labels
+        true_labels = []
+        predicted_labels = []
+
         # set to eval mode
         self.model.eval()
 
@@ -95,7 +105,50 @@ class PretrainedWBCClassifierTrainer(WBCClassifierTrainer):
         # Calculate validation accuracy for the epoch
         avg_test_accuracy = test_correct_predictions / total_test_samples
 
+        conf_matrix, prettified_f1_scores, prettified_precision_scores, prettified_recall_scores = self.get_metrics_for_class_predictions(
+            predicted_labels, true_labels
+        )
+
         return {
             "test_loss": avg_test_loss,
-            "test_accuracy": avg_test_accuracy
+            "test_accuracy": avg_test_accuracy,
+            "conf_matrix": conf_matrix,
+            "f1_scores": prettified_f1_scores,
+            "recall_scores": prettified_recall_scores,
+            "precision_scores": prettified_precision_scores
         }
+
+    def get_metrics_for_class_predictions(self, predicted_labels, true_labels):
+        # Calculate the confusion matrix
+        conf_matrix = confusion_matrix(true_labels, predicted_labels)
+        # Calculate F1 score, recall, and precision for each class
+        f1_scores = f1_score(true_labels, predicted_labels, average=None)
+        recall_scores = recall_score(true_labels, predicted_labels, average=None)
+        precision_scores = precision_score(true_labels, predicted_labels, average=None)
+        # Create dictionaries with prettified class labels
+        prettified_f1_scores = {self.class_names[i]: f1_scores[i] for i in range(len(self.class_names))}
+        prettified_recall_scores = {self.class_names[i]: recall_scores[i] for i in range(len(self.class_names))}
+        prettified_precision_scores = {self.class_names[i]: precision_scores[i] for i in range(len(self.class_names))}
+        # Print the confusion matrix with class labels
+        self.print_confusion_matrix(conf_matrix)
+        return conf_matrix, prettified_f1_scores, prettified_precision_scores, prettified_recall_scores
+
+    def print_confusion_matrix(self, conf_matrix):
+        num_classes = len(self.class_names)
+
+        print("Confusion Matrix:")
+
+        # Print header row with class names
+        header = ["Actual\Predicted"] + self.class_names
+        print("\t".join(header))
+
+        # Print TP and TN for each class
+        for i in range(num_classes):
+            row = [self.class_names[i]]  # Class label
+
+            # Calculate TP and TN for the class
+            TP = conf_matrix[i, i]
+            TN = sum([conf_matrix[j, k] for j in range(num_classes) for k in range(num_classes) if j != i and k != i])
+
+            row.extend([f"TP:{TP}", f"TN:{TN}"])
+            print("\t".join(row))

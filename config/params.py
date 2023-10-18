@@ -25,7 +25,7 @@ cam_batch_size = 16
 cam_img_resize_target = 224 # as we are passing it into resnet
 
 wbc_batch_size = 16
-wbc_img_resize_target = 224 # from 575 -> 224
+wbc_img_resize_target = 256 # from 575 -> 256
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # 3. TRANSFORMS
 
