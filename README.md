@@ -1,5 +1,4 @@
 # <u> Hematologic-Cell-Identification </u>
-
 This repo contains the project code for the CS5242 (Neural Networks &amp; Deep Learning) course taken @ NUS
 
 ## <u> Objective </u>
@@ -51,5 +50,10 @@ For more details refer to the report.
 
 ## <u>Datasets used</u>
 
+### <u> Raw Datasets </u>
+Use this <a href ="https://www.dropbox.com/sh/954r9ib45wz27x7/AAAchJJxjNCOjKFcPoogzIkXa?dl=0">dropbox link</a> for downloading the datasets
 
 
+## <u> Processed Datasets & Model weights </u>
+
+This <a href="https://drive.google.com/drive/folders/1lJLDTF6k3GGs2Oj7f07gVDdxNYfitAEy?usp=sharing">google drive link</a> contains both the weights of all models trained along with the preprocessed datasets uploaded as zip files (which can be directly usable in colab)
