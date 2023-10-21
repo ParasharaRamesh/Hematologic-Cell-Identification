@@ -46,7 +46,7 @@ For more details refer to the report.
 14. ./experiments/wbc_classifier: Contains the trainer class for WBC classification
 15. ./experiments/wbc_pretrained: Contains the trainer class for WBC classification with pretraining from the pRCC and the Cam16 model
 
-<b>NOTE:</b> All of the jupyter notebooks were run on colab therefore all the classes defined in other directories needed to be explicitly used there due to issues importing python files in the google colab environment
+<b>NOTE:</b> All of the jupyter notebooks were run on colab therefore all the classes defined in other directories needed to be explicitly copy-pasted due to issues importing the relevant python files in the google colab environment. If the reader chooses to run this locally feel free to remove the class definitions and just import the relevant classes instead.
 
 ## <u>Datasets used</u>
 
