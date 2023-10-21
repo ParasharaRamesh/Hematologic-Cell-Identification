@@ -85,9 +85,6 @@ class WBCClassifier(nn.Module):
 
 
 if __name__ == '__main__':
-    # Example usage:
     wbc = WBCClassifier().to(config.device)
     summary(wbc, input_size=(3, 256, 256), device=config.device, batch_dim=0,
             col_names=["input_size", "output_size", "num_params", "kernel_size", "mult_adds"], verbose=1)
-    # input_tensor = torch.randn(1, 3, 256, 256).to(config.device)
-    # output = cam(input_tensor)

@@ -152,9 +152,6 @@ class pRCCAutoencoder(nn.Module):
 
 
 if __name__ == '__main__':
-    # Example usage:
-    # autoencoder = pRCCUnetAutoencoder().to(config.device)
     autoencoder = pRCCAutoencoder().to(config.device)
-    # summary(autoencoder, input_size=(3, 256, 256), device=config.device, batch_dim=0,col_names=["input_size", "output_size", "num_params", "kernel_size", "mult_adds"], verbose=1)
-    input_tensor = torch.randn(1, 3, 512, 512).to(config.device)
-    latent, output = autoencoder(input_tensor)
+    summary(autoencoder, input_size=(3, 512, 512), device=config.device, batch_dim=0,col_names=["input_size", "output_size", "num_params", "kernel_size", "mult_adds"], verbose=1)
+

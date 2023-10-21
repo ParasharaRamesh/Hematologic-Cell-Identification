@@ -1,10 +1,12 @@
 import torch
 import torch.nn as nn
+from torchinfo import summary
 
 from models.cam import CamelyonClassifier
 from models.pRCC import pRCCUnetAutoencoder
 from models.wbc import WBCClassifier
 from config import params as config
+
 
 class PretrainedWBCClassifier(nn.Module):
     def __init__(self,
@@ -56,7 +58,7 @@ class PretrainedWBCClassifier(nn.Module):
             self.WBC_model.load_state_dict(wbc_checkpoint)
             print(f"Finished loading the base WBC weights from {wbc_weights_path}")
 
-        #Input (batch_size, 128, 64, 64)
+        # Input (batch_size, 128, 64, 64)
         self.pRCC_latent_to_output = nn.Sequential(
             nn.Conv2d(128, 256, kernel_size=3, stride=1, padding=1),  # Output shape: (batch_size, 256, 64, 64)
             nn.ReLU(),
@@ -83,29 +85,35 @@ class PretrainedWBCClassifier(nn.Module):
 
     def forward(self, pRCC_input, Cam16_input, WBC_input):
         # Forward pass through pRCC model
-        pRCC_latent, _ = self.pRCC_model(pRCC_input) # b, 128,250,250
-        pRCC_output = self.pRCC_latent_to_output(pRCC_latent) #b,5
+        pRCC_latent, _ = self.pRCC_model(pRCC_input)  # b, 128,250,250
+        pRCC_output = self.pRCC_latent_to_output(pRCC_latent)  # b,5
 
         # Forward pass through Cam16 model ( the second one is the prediction across 2 classes)
-        Cam16_output, _ = self.Cam16_model(Cam16_input) #b,5
+        Cam16_output, _ = self.Cam16_model(Cam16_input)  # b,5
 
         # Forward pass through WBC model
-        WBC_output = self.WBC_model(WBC_input) #b,5
+        WBC_output = self.WBC_model(WBC_input)  # b,5
 
         # Combine the outputs from each of the model
-        combined_output = pRCC_output + Cam16_output + WBC_output #b,5
+        combined_output = pRCC_output + Cam16_output + WBC_output  # b,5
 
         # Combine the outputs of all three models
-        combined_predictor = self.combine_outputs(combined_output) #b,5
+        combined_predictor = self.combine_outputs(combined_output)  # b,5
 
         return combined_predictor
 
 
 if __name__ == '__main__':
     # Create instances of pRCC, Cam16, and WBC models
-    pRCC_model = pRCCUnetAutoencoder()
-    Cam16_model = CamelyonClassifier()
-    WBC_model = WBCClassifier()
+    pRCC_model = pRCCUnetAutoencoder()  # input is (3,512,512)
+    Cam16_model = CamelyonClassifier()  # input is (3,224,224)
+    WBC_model = WBCClassifier()  # input is (3,256,256)
 
     # Create the modified combined model
-    combined_model = PretrainedWBCClassifier(pRCC_model, Cam16_model, WBC_model)
+    combined_model = PretrainedWBCClassifier(pRCC_model, Cam16_model, WBC_model).to(config.device)
+    print(combined_model)
+
+    #NOTE: not able to use torchinfo.summary for this complex model therefore I am just printing the basic model architecture which arises from printing the object!
+    # summary(combined_model, input_size=[(1, 3, 512, 512), (1, 3, 224, 224), (1, 3, 256, 256)], device=config.device,
+    #         batch_dim=0,
+    #         col_names=["input_size", "output_size", "num_params", "kernel_size", "mult_adds"], verbose=1)

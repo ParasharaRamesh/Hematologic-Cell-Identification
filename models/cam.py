@@ -1,3 +1,5 @@
+import sys
+
 import torch
 from torchinfo import summary
 import torch.nn as nn
@@ -108,7 +110,4 @@ class CamelyonClassifier(nn.Module):
 
 if __name__ == '__main__':
     cam = CamelyonClassifier().to(config.device)
-    # input_tensor = torch.randn(1, 3, 256, 256).to(config.device)
-    # input_tensor = torch.randn(1, 3, 224, 224).to(config.device)
-    # output = cam(input_tensor)
     summary(cam, input_size=(3, 224, 224), device=config.device, batch_dim=0,col_names=["input_size", "output_size", "num_params", "kernel_size", "mult_adds"], verbose=1)

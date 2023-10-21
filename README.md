@@ -45,6 +45,7 @@ For more details refer to the report.
 13. ./experiments/pRCC_autoencoder: Contains the trainer class for pRCC Autoencoder
 14. ./experiments/wbc_classifier: Contains the trainer class for WBC classification
 15. ./experiments/wbc_pretrained: Contains the trainer class for WBC classification with pretraining from the pRCC and the Cam16 model
+16. ./resources: Screenshots taken from the various ipynb notebooks with plots and other metrics
 
 <b>NOTE:</b> All of the jupyter notebooks were run on colab therefore all the classes defined in other directories needed to be explicitly copy-pasted due to issues importing the relevant python files in the google colab environment. If the reader chooses to run this locally feel free to remove the class definitions and just import the relevant classes instead.
 
