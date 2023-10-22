@@ -27,6 +27,7 @@ The steps mentioned below for each model only talks about what is the expected w
 * (OR) Take the zip file "WBC_{n}_balanced.zip" mentioned in the drive link at the bottom of the README.md and place it in your google drive root path. This is the balanced dataset obtained by running the balancing script (./data/balancing/wbc.py) to augment under-represented classes.
 * Run the colab notebook as is
 (or)
-* Take the dataset path and run the ./data/balancing/wbc.py script locally in case you want to balance all the classes of the dataset as the original dataset is imbalanced.
+* Take the dataset path and run the ./data/maskification/apply_mask.py script locally which will apply the masks present and add this image as a new datapoint and save it in a specified output path
+* Take the new dataset with masks and run the ./data/balancing/wbc.py script locally in case you want to balance all the classes of the dataset as the original dataset is imbalanced.
 * Upload the dataset to drive (as is or zip) and mount it to colab and change the Config.datasets_path. (You can choose to use the original imbalanced dataset or the balanced dataset)
 * The dataloader code varies for the base wbc model and the pretrained wbc model, but the same WBC dataset can be used in both colab notebooks
