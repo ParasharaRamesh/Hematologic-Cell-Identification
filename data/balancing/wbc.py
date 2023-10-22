@@ -12,14 +12,6 @@ from collections import Counter
 import random
 from tqdm import tqdm
 
-'''
-TODO.x
-
-1. move this to a new place for creating the wbc balancing ( call that module balancing)..
-2. in wbc and wbc_pretrained dont have any balancing stuff... just load from path
-
-'''
-
 
 # This dataset is not balanced therefore we need to apply transformations appropriately
 class WBCDatasetBalancer:
