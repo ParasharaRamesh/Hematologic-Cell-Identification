@@ -58,3 +58,9 @@ Use this <a href ="https://www.dropbox.com/sh/954r9ib45wz27x7/AAAchJJxjNCOjKFcPo
 ## <u> Processed Datasets & Model weights </u>
 
 This <a href="https://drive.google.com/drive/folders/1lJLDTF6k3GGs2Oj7f07gVDdxNYfitAEy?usp=sharing">google drive link</a> contains both the weights of all models trained along with the preprocessed datasets uploaded as zip files (which can be directly usable in colab)
+
+## <u> How to run each experiment </u>
+
+Since each notebook is a colab notebook it is better to upload the datasets to your google drive and then use google colab to run the model.
+
+The file <b>"How to run in colab.txt"</b> mentions how to setup your datasets & google drive in order to be able to execute the notebooks in google colab.

@@ -1,0 +1,32 @@
+It is recommended that all jupyter notebooks mentioned in this project are run on google colab.
+
+Reason being, each notebook has logic which can mount the google drive with your google colab instance.
+
+The steps mentioned below for each model only talks about what is the expected way to load the datasets into your google drive as the colab notebook are self-contained enough to train and test each model after that.
+
+1. Camelyon Model:
+
+* Take the zip file "Camelyon.zip" mentioned in the drive link at the bottom of the README.md and place it in your google drive root path. (This zip contains the mask information as well)
+* Run the colab notebook as is
+(or)
+* Take the dataset path and run the ./data/maskification/apply_mask.py script locally which will apply the masks present and add this image as a new datapoint and save it in a specified output path
+* Upload this new dataset with the mask information to drive (either as a zip or the whole dataset)
+* Once the drive gets mounted to colab and change the Config.datasets_path appropriately (based on whether a zip was uploaded or the whole dataset was uploaded in the previous step)
+
+2. pRCC Model
+
+* Take the zip file "pRCC.zip" mentioned in the drive link at the bottom of the README.md and place it in your google drive root path
+* Run the colab notebook as is
+(or)
+* Upload the dataset to drive (as is or zip) and mount it to colab and change the Config.datasets_path
+
+3. WBC Model & WBC Pretrained model
+
+* There are 4 different splits of this dataset (1,10,50,100) which is referred to as "n" below.
+* Take the zip file "WBC_{n}.zip" mentioned in the drive link at the bottom of the README.md and place it in your google drive root path.
+* (OR) Take the zip file "WBC_{n}_balanced.zip" mentioned in the drive link at the bottom of the README.md and place it in your google drive root path. This is the balanced dataset obtained by running the balancing script (./data/balancing/wbc.py) to augment under-represented classes.
+* Run the colab notebook as is
+(or)
+* Take the dataset path and run the ./data/balancing/wbc.py script locally in case you want to balance all the classes of the dataset as the original dataset is imbalanced.
+* Upload the dataset to drive (as is or zip) and mount it to colab and change the Config.datasets_path. (You can choose to use the original imbalanced dataset or the balanced dataset)
+* The dataloader code varies for the base wbc model and the pretrained wbc model, but the same WBC dataset can be used in both colab notebooks
